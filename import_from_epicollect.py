@@ -32,6 +32,15 @@ while len(unresolved_models) > 0:
             sorted_model_items.append(model_item)
             unresolved_models.remove(model_item)
         
+# Disable foreign key constraint checking because deleting the old data
+# will temporarily break referential integrity until  it is re-imported.
+from django.db.backends.signals import connection_created
+def disable_foreign_keys(sender, connection, **kwargs):
+    """Enable integrity constraint with sqlite."""
+    if connection.vendor == 'sqlite':
+        cursor = connection.cursor()
+        cursor.execute('PRAGMA foreign_keys = OFF;')
+connection_created.connect(disable_foreign_keys)
 
 # Delete all previously imported data
 obj.objects.all().delete()
@@ -44,7 +53,7 @@ def import_from_epicollect():
     })
     
     token = response.json()
-    for name, model in sorted_model_items:
+    for model_name, model in sorted_model_items:
         params  = {}
         if model.ec5_is_branch:
             params['branch_ref'] = model.ec5_ref
@@ -55,8 +64,6 @@ def import_from_epicollect():
             headers={
                 'Authorization': 'Bearer ' + token['access_token']
             })
-        # if model.ec5_is_branch:
-        #     print(str(response.json()).encode('ascii', 'replace'))
         for entry in response.json()['data']['entries']:
             values = {}
             file_values = {}

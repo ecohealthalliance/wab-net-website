@@ -5,10 +5,10 @@
 
 {% block content %}
     <h1>{{site_data.x_3_Site_name_x}}</h1>
-    <a class="btn btn-default" href="{% url 'attach_data' site_data.uuid %}" role="button">Attach Secondary Data</a>
-    <a class="btn btn-default" href="#" role="button">Download CSV</a>
+    <a class="btn btn-default" href="{% url 'download_site' site_data.uuid %}" role="button">Download CSVs</a>
     {% for table in tables %}
         <h4>{{table.name}}</h4>
         {% render_table table %}
     {% endfor %}
+    <a class="btn btn-default" href="{% url 'attach_data' site_data.uuid %}" role="button">Attach Secondary Data</a>
 {% endblock %}

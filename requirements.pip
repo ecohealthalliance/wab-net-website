@@ -1,3 +1,5 @@
 django-tables2
 requests
 django-allauth
+tablib
+six
