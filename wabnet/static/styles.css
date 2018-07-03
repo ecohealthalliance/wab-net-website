@@ -1,0 +1,16 @@
+.content {
+    margin: auto;
+    display: block;
+    width: 800px;
+}
+.logo {
+    width: 800px;
+}
+.table-container {
+    max-width: 800px;
+    overflow: auto;
+    box-sizing: content-box;
+}
+.table th {
+    min-width: 120px;
+}

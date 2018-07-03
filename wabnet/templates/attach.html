@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Attach Secondary Data{% endblock %}
+
+{% block content %}
+<form action="{{ request.path }}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form }}
+    <input type="submit" value="Submit" />
+</form>
+{% endblock %}
