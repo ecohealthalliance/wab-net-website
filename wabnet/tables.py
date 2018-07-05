@@ -1,9 +1,9 @@
 # tutorial/tables.py
 import django_tables2 as tables
-from .models import x_field_data_forms_x, SecondaryData
+from .models import x_field_data_forms_x, x_43_Bat_capture_data_x, SecondaryData
 from django_tables2.utils import A
 
-class x_field_data_forms_x_Table(tables.Table):
+class SiteTable(tables.Table):
     class Meta:
         model = x_field_data_forms_x
         template_name = 'django_tables2/bootstrap.html'
@@ -14,8 +14,19 @@ class x_field_data_forms_x_Table(tables.Table):
         text='View data for site',
         attrs={'th':{'hidden': True}})
 
-# class SecondaryDataTable(tables.Table):
-#     class Meta:
-#         model = SecondaryData
-#         template_name = 'django_tables2/bootstrap.html'
-#         exclude = ('id', 'parent',)
+class BatTable(tables.Table):
+    class Meta:
+        model = x_43_Bat_capture_data_x
+        template_name = 'django_tables2/bootstrap.html'
+        exclude = ('id', 'parent',)
+        sequence = ('title', '...')
+
+    title = tables.LinkColumn('bats',
+        args=[A('id')])
+
+class SecondaryDataTable(tables.Table):
+    name = "Secondary Data"
+    class Meta:
+        model = SecondaryData
+        template_name = 'django_tables2/bootstrap.html'
+        exclude = ('id', 'parent',)

@@ -10,5 +10,7 @@
         <h4>{{table.name}}</h4>
         {% render_table table %}
     {% endfor %}
+    <h4>Secondary Data Table</h4>
     <a class="btn btn-default" href="{% url 'attach_data' site_data.uuid %}" role="button">Attach Secondary Data</a>
+    {% render_table secondary_data_table %}
 {% endblock %}

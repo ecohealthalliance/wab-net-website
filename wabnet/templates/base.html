@@ -22,8 +22,8 @@
   
           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
-              <li><a href="/sites">Sites</a></li>
-              <li><a href="/bats">Bats</a></li>
+              <li class="{% if request.path|slice:':7' == '/sites/' %}active{% endif %}"><a href="/sites">Sites</a></li>
+              <li class="{% if request.path|slice:':6' == '/bats/' %}active{% endif %}"><a href="/bats" class="">Bats</a></li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
               {% if user.is_authenticated %}

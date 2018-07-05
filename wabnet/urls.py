@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from .views import site_table, site, attach_data, splash, download_site_data
+from .views import site_table, site, attach_data, splash, download_site_data, bat_table, bat
 from . import settings
 
 urlpatterns = [
@@ -25,6 +25,8 @@ urlpatterns = [
     path('sites/<id>', site, name='sites'),
     path('sites/<id>/download', download_site_data, name='download_site'),
     path('sites/<id>/attach', attach_data, name='attach_data'),
+    path('bats/', bat_table),
+    path('bats/<bat_id>', bat, name='bats'),
     path('accounts/', include('allauth.urls')),
 ]
 

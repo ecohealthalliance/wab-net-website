@@ -96,4 +96,10 @@ def import_from_epicollect():
                 getattr(model_instance, field_name).save(*file_data, save=False)
             model_instance.save()
 
+    # Create group for each Country
+    from django.contrib.auth.models import Group
+    for site in ec5_models.x_field_data_forms_x.objects.all():
+        new_group, created = Group.objects.get_or_create(name="View " + site.x_1_Country_x)
+    Group.objects.get_or_create(name="View all countries")
+
 import_from_epicollect()

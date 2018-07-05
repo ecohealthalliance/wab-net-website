@@ -1,3 +1,10 @@
+.navbar-default {
+    background: white;
+    border-bottom: 1px solid #1963b6;
+}
+.navbar-default .navbar-brand {
+    color: #1963b6;
+}
 .content {
     margin: auto;
     display: block;
@@ -10,6 +17,7 @@
     max-width: 800px;
     overflow: auto;
     box-sizing: content-box;
+    display: inline-block;
 }
 .table th {
     min-width: 120px;
