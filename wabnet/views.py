@@ -5,7 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django_tables2 import RequestConfig
 import django_tables2
-from .models import SiteData, BatCaptureData, SecondaryData, EntityKeywords
+from .models import SiteData, BatCaptureData, SecondaryData
+from .entity_keywords_model import EntityKeywords
 from .tables import SiteTable, BatTable, SecondaryDataTable
 
 

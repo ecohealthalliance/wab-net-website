@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'wabnet.settings'
 django.setup()
 
-from wabnet.models import EntityKeywords
+from wabnet.entity_keywords_model import EntityKeywords
 import inspect
 import wabnet.ec5_models as ec5_models
 ec5_model_dict = {}

@@ -38,6 +38,7 @@ for mapping in resp_json['meta']['project_mapping']:
 def generate_form_models(inputs, ref, parent_ref=None, is_branch=False, name=None):
     result = []
     result.append("class %s(models.Model):" % format_name(all_form_mappings[ref]))
+    result.append("    keywords = GenericRelation(entity_keywords_model.EntityKeywords)")
     result.append("    name = '%s'" % name)
     result.append("    ec5_is_branch = " + str(is_branch))
     result.append("    ec5_ref = '%s'" % ref)
@@ -66,6 +67,8 @@ def generate_form_models(inputs, ref, parent_ref=None, is_branch=False, name=Non
 with open('wabnet/ec5_models.py', 'w') as f:
     f.write("""# These models were generated from the Epicollect 5 project via generate_models.py
 from django.db import models
+from . import entity_keywords_model
+from django.contrib.contenttypes.fields import GenericRelation
 
 project_name = '%s'
 

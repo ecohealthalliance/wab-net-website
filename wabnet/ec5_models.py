@@ -1,11 +1,12 @@
 # These models were generated from the Epicollect 5 project via generate_models.py
 from django.db import models
-from .entity_keywords_model import EntityKeywords
+from . import entity_keywords_model
 from django.contrib.contenttypes.fields import GenericRelation
 
 project_name = 'nathan-test-wabnet3'
 
 class SiteData(models.Model):
+    keywords = GenericRelation(entity_keywords_model.EntityKeywords)
     name = 'field_data_forms'
     ec5_is_branch = False
     ec5_ref = '92241edac9a74ee4afc7df55edf6beda_5b3f8dac25970'
@@ -28,6 +29,7 @@ class SiteData(models.Model):
 
 
 class x_5_Site_characterizat_x(models.Model):
+    keywords = GenericRelation(entity_keywords_model.EntityKeywords)
     name = 'Site characterization '
     ec5_is_branch = True
     ec5_ref = '92241edac9a74ee4afc7df55edf6beda_5b3f8dac25970_5aeb5a485aa2c'
@@ -65,6 +67,7 @@ class x_5_Site_characterizat_x(models.Model):
 
 
 class BatCaptureData(models.Model):
+    keywords = GenericRelation(entity_keywords_model.EntityKeywords)
     name = 'Bat capture data'
     ec5_is_branch = True
     ec5_ref = '92241edac9a74ee4afc7df55edf6beda_5b3f8dac25970_5aeb5ab65aa2e'
@@ -108,10 +111,10 @@ class BatCaptureData(models.Model):
     x_79_Plasma_x = models.TextField(verbose_name='Plasma')
     x_80_Wing_biopsy_punch_x = models.TextField(verbose_name='Wing biopsy punch')
     x_81_Additional_inform_x = models.TextField(verbose_name='Additional information')
-    keywords = GenericRelation(EntityKeywords)
 
 
 class x_82_Bat_acoustic_data_x(models.Model):
+    keywords = GenericRelation(entity_keywords_model.EntityKeywords)
     name = 'Bat acoustic data'
     ec5_is_branch = True
     ec5_ref = '92241edac9a74ee4afc7df55edf6beda_5b3f8dac25970_5af087872284e'
@@ -132,6 +135,7 @@ class x_82_Bat_acoustic_data_x(models.Model):
 
 
 class x_93_Bat_necropsy_form_x(models.Model):
+    keywords = GenericRelation(entity_keywords_model.EntityKeywords)
     name = 'Bat necropsy form'
     ec5_is_branch = True
     ec5_ref = '92241edac9a74ee4afc7df55edf6beda_5b3f8dac25970_5af0878a2284f'
@@ -148,6 +152,7 @@ class x_93_Bat_necropsy_form_x(models.Model):
 
 
 class x_100_Lab_results_data_x(models.Model):
+    keywords = GenericRelation(entity_keywords_model.EntityKeywords)
     name = 'Lab results data'
     ec5_is_branch = True
     ec5_ref = '92241edac9a74ee4afc7df55edf6beda_5b3f8dac25970_5aeb619e9a9eb'
