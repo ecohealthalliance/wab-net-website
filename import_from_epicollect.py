@@ -53,7 +53,7 @@ def import_from_epicollect():
       'client_id': EC5_CLIENT_ID,
       'client_secret': EC5_SECRET_KEY
     })
-
+    response.raise_for_status()
     token = response.json()
     for model_name, model in sorted_model_items:
         params  = {}
@@ -66,6 +66,7 @@ def import_from_epicollect():
             headers={
                 'Authorization': 'Bearer ' + token['access_token']
             })
+        response.raise_for_status()
         for entry in response.json()['data']['entries']:
             values = {}
             file_values = {}
