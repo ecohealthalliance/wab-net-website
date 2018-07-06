@@ -123,9 +123,11 @@ USE_L10N = True
 
 USE_TZ = True
 
+STATIC_ROOT = os.environ.get('STATIC_ROOT')
+
 STATIC_URL = '/static/'
 
-MEDIA_ROOT = 'media/'
+MEDIA_ROOT = os.environ.get('MEDIA_ROOT', 'media/')
 
 MEDIA_URL = '/media/'
 
