@@ -1,6 +1,7 @@
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 import django.forms as forms
+from django.db import models
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django_tables2 import RequestConfig
@@ -19,7 +20,7 @@ import inspect
 from . import ec5_models
 child_models = {}
 for name, obj in inspect.getmembers(ec5_models):
-    if inspect.isclass(obj):
+    if inspect.isclass(obj) and issubclass(obj, models.Model):
         if hasattr(obj, 'parent'):
             child_models[name] = obj
 

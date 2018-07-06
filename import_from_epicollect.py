@@ -18,7 +18,7 @@ import wabnet.ec5_models as ec5_models
 ec5_model_dict = {}
 root_model = None
 for name, obj in inspect.getmembers(ec5_models):
-    if inspect.isclass(obj):
+    if inspect.isclass(obj) and issubclass(obj, models.Model):
         ec5_model_dict[name] = obj
         if not hasattr(obj, 'parent'):
             root_model = obj
@@ -98,7 +98,6 @@ def import_from_epicollect():
             for field_name, file_data in file_values.items():
                 getattr(model_instance, field_name).save(*file_data, save=False)
             model_instance.save()
-            print("k:", keywords)
             EntityKeywords(content_object=model_instance, keywords=keywords).save()
 
     # Create group for each Country
