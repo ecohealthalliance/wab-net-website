@@ -1,19 +1,21 @@
 import requests
 from wabnet.utils import format_name
+from wabnet.settings import EC5_SECRET_KEY, EC5_CLIENT_ID, EC5_PROJECT_NAME
 
 response = requests.post('https://five.epicollect.net/api/oauth/token', data={
   'grant_type': 'client_credentials',
-  'client_id': 364,
-  'client_secret': '3dJRqIwr9t8l9wlrbR3MENKEtlCO2c7WeJIy3K6A'
+  'client_id': EC5_CLIENT_ID,
+  'client_secret': EC5_SECRET_KEY
 })
 
+response.raise_for_status()
 token = response.json()
 
-response = requests.get('https://five.epicollect.net/api/export/project/western-asia-bat-research', headers={
+response = requests.get('https://five.epicollect.net/api/export/project/' + EC5_PROJECT_NAME, headers={
     'Authorization': 'Bearer ' + token['access_token']
 })
+response.raise_for_status()
 resp_json = response.json()
-
 
 def get_form_mappings(form):
     result = {}
@@ -27,9 +29,11 @@ def get_form_mappings(form):
 
 
 all_form_mappings = {}
-for form_meta in resp_json['meta']['project_mapping'][0]['forms'].values():
-    all_form_mappings.update(get_form_mappings(form_meta))
-
+for mapping in resp_json['meta']['project_mapping']:
+    if mapping['is_default']:
+        for form_meta in mapping['forms'].values():
+            all_form_mappings.update(get_form_mappings(form_meta))
+        break
 
 def generate_form_models(inputs, ref, parent_ref=None, is_branch=False, name=None):
     result = []

@@ -1,13 +1,13 @@
 # tutorial/tables.py
 import django_tables2 as tables
-from .models import x_field_data_forms_x, x_43_Bat_capture_data_x, SecondaryData
+from .models import SiteData, BatCaptureData, SecondaryData
 from django_tables2.utils import A
 
 class SiteTable(tables.Table):
     class Meta:
-        model = x_field_data_forms_x
+        model = SiteData
         template_name = 'django_tables2/bootstrap.html'
-        fields = ('x_3_Site_name_x', 'x_1_Country_x', 'uuid')
+        fields = ('title', 'country', 'uuid')
 
     uuid = tables.LinkColumn('sites',
         args=[A('uuid')],
@@ -16,7 +16,7 @@ class SiteTable(tables.Table):
 
 class BatTable(tables.Table):
     class Meta:
-        model = x_43_Bat_capture_data_x
+        model = BatCaptureData
         template_name = 'django_tables2/bootstrap.html'
         exclude = ('id', 'parent',)
         sequence = ('title', '...')

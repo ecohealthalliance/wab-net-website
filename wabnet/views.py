@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django_tables2 import RequestConfig
 import django_tables2
-from .models import x_field_data_forms_x, x_43_Bat_capture_data_x, SecondaryData
+from .models import SiteData, BatCaptureData, SecondaryData, EntityKeywords
 from .tables import SiteTable, BatTable, SecondaryDataTable
 
 
@@ -30,10 +30,10 @@ def site_table(request):
     user_viewable_countries = [
         group.name.replace('View ', '') for group in request.user.groups.all()]
     if 'all countries' in user_viewable_countries:
-        sites = x_field_data_forms_x.objects.all()
+        sites = SiteData.objects.all()
     else:
-        sites = x_field_data_forms_x.objects.filter(
-            x_1_Country_x__in=user_viewable_countries)
+        sites = SiteData.objects.filter(
+            country__in=user_viewable_countries)
     table = SiteTable(sites)
     RequestConfig(request, paginate={'per_page': 20}).configure(table)
     return render(request, 'table.html', {'table': table})
@@ -44,8 +44,8 @@ def raise_if_user_cannot_access_site(user, site_id):
     if 'all countries' in user_viewable_countries:
         return
     else:
-        sites = x_field_data_forms_x.objects.filter(
-            x_1_Country_x__in=user_viewable_countries, uuid=site_id)
+        sites = SiteData.objects.filter(
+            country__in=user_viewable_countries, uuid=site_id)
         if len(sites) == 0:
             raise PermissionDenied
 
@@ -53,7 +53,7 @@ def raise_if_user_cannot_access_site(user, site_id):
 def site(request, id):
     raise_if_user_cannot_access_site(request.user, id)
     tables = []
-    site_data = x_field_data_forms_x.objects.get(uuid=id)
+    site_data = SiteData.objects.get(uuid=id)
     for model_name, child_model in child_models.items():
         class MyTable(django_tables2.Table):
             name = child_model.name
@@ -80,12 +80,12 @@ def attach_data(request, id):
         form = SecondaryDataForm(request.POST, request.FILES)
         if form.is_valid():
             secondary_data = form.save(commit=False)
-            secondary_data.parent = x_field_data_forms_x.objects.get(uuid=id)
+            secondary_data.parent = SiteData.objects.get(uuid=id)
             secondary_data.save()
             return HttpResponseRedirect('/sites/' + id)
         else:
             return render(request, 'attach.html', {'form': form})
-    site_data = x_field_data_forms_x.objects.get(uuid=id)
+    site_data = SiteData.objects.get(uuid=id)
     secondary_data = SecondaryData(parent=site_data)
     return render(request, 'attach.html', {'form': SecondaryDataForm(instance=secondary_data)})
 
@@ -122,10 +122,12 @@ def bat_table(request):
     user_viewable_countries = [
         group.name.replace('View ', '') for group in request.user.groups.all()]
     if 'all countries' in user_viewable_countries:
-        bats = x_43_Bat_capture_data_x.objects.all()
+        bats = BatCaptureData.objects.all()
     else:
-        bats = x_43_Bat_capture_data_x.objects.filter(
-            parent__x_1_Country_x__in=user_viewable_countries)
+        bats = BatCaptureData.objects.filter(
+            parent__country__in=user_viewable_countries)
+    if request.GET.get('q'):
+        bats = bats.filter(keywords__keywords__contains=request.GET.get('q'))
     table = BatTable(bats)
     RequestConfig(request, paginate={'per_page': 20}).configure(table)
     return render(request, 'bat_table.html', {'table': table})
@@ -136,15 +138,15 @@ def raise_if_user_cannot_access_bat(user, bat_id):
     if 'all countries' in user_viewable_countries:
         return
     else:
-        bats = x_43_Bat_capture_data_x.objects.filter(
-            parent__x_1_Country_x__in=user_viewable_countries, id=bat_id)
+        bats = BatCaptureData.objects.filter(
+            parent__country__in=user_viewable_countries, id=bat_id)
         if len(bats) == 0:
             raise PermissionDenied
 
 @login_required
 def bat(request, bat_id):
     raise_if_user_cannot_access_bat(request.user, bat_id)
-    bat_data = x_43_Bat_capture_data_x.objects.get(id=bat_id)
+    bat_data = BatCaptureData.objects.get(id=bat_id)
     return render(request, 'bat.html', {
         'bat_data': bat_data,
         'tables': []})

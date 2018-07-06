@@ -6,11 +6,13 @@ from django.core.files.base import ContentFile
 from django.db import models
 import re
 from wabnet.utils import format_name
+from wabnet.settings import EC5_SECRET_KEY, EC5_CLIENT_ID
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'wabnet.settings'
 django.setup()
 
+from wabnet.models import EntityKeywords
 import inspect
 import wabnet.ec5_models as ec5_models
 ec5_model_dict = {}
@@ -48,10 +50,10 @@ obj.objects.all().delete()
 def import_from_epicollect():
     response = requests.post('https://five.epicollect.net/api/oauth/token', data={
       'grant_type': 'client_credentials',
-      'client_id': 364,
-      'client_secret': '3dJRqIwr9t8l9wlrbR3MENKEtlCO2c7WeJIy3K6A'
+      'client_id': EC5_CLIENT_ID,
+      'client_secret': EC5_SECRET_KEY
     })
-    
+
     token = response.json()
     for model_name, model in sorted_model_items:
         params  = {}
@@ -87,6 +89,7 @@ def import_from_epicollect():
             values['created_at'] = entry['created_at']
             values['created_by'] = entry['created_by']
             values['title'] = entry['title']
+            keywords = ' '.join(str(v) for v in values.values())
             if 'ec5_uuid' in entry:
                 values['uuid'] = entry['ec5_uuid']
             if 'ec5_branch_owner_uuid' in entry:
@@ -95,11 +98,13 @@ def import_from_epicollect():
             for field_name, file_data in file_values.items():
                 getattr(model_instance, field_name).save(*file_data, save=False)
             model_instance.save()
+            print("k:", keywords)
+            EntityKeywords(content_object=model_instance, keywords=keywords).save()
 
     # Create group for each Country
     from django.contrib.auth.models import Group
-    for site in ec5_models.x_field_data_forms_x.objects.all():
-        new_group, created = Group.objects.get_or_create(name="View " + site.x_1_Country_x)
+    for site in ec5_models.SiteData.objects.all():
+        new_group, created = Group.objects.get_or_create(name="View " + site.country)
     Group.objects.get_or_create(name="View all countries")
 
 import_from_epicollect()

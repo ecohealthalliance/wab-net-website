@@ -19,11 +19,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '$%7z399oe9i_l(q954h_!g)cqbz$d*#vwrxv^q9eqh)r685qx3'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', False)
 
 ALLOWED_HOSTS = []
 
@@ -130,3 +128,9 @@ STATIC_URL = '/static/'
 MEDIA_ROOT = 'media/'
 
 MEDIA_URL = '/media/'
+
+EC5_PROJECT_NAME = os.environ.get('EC5_PROJECT_NAME')
+
+EC5_SECRET_KEY = os.environ.get('EC5_SECRET_KEY')
+
+EC5_CLIENT_ID = os.environ.get('EC5_CLIENT_ID')
