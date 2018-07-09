@@ -44,7 +44,7 @@ def generate_form_models(inputs, ref, parent_ref=None, is_branch=False, name=Non
     result.append("    ec5_ref = '%s'" % ref)
     if not is_branch:
         result.append("    uuid = models.CharField(max_length=100, primary_key=True)")
-    result.append("    created_at = models.TextField()")
+    result.append("    created_at = models.DateTimeField()")
     result.append("    created_by = models.TextField()")
     result.append("    title = models.TextField()")
     if parent_ref:

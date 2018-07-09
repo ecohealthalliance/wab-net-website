@@ -2,6 +2,7 @@ import requests
 import sys
 import os
 import django
+import datetime
 from django.core.files.base import ContentFile
 from django.db import models
 import re
@@ -45,7 +46,7 @@ def disable_foreign_keys(sender, connection, **kwargs):
 connection_created.connect(disable_foreign_keys)
 
 # Delete all previously imported data
-obj.objects.all().delete()
+root_model.objects.all().delete()
 
 def import_from_epicollect():
     response = requests.post('https://five.epicollect.net/api/oauth/token', data={
@@ -87,7 +88,9 @@ def import_from_epicollect():
                         file_values[format_name(key)] = (value, ContentFile(response.content),)
                     else:
                         values[format_name(key)] = value
-            values['created_at'] = entry['created_at']
+            values['created_at'] = datetime.datetime.strptime(
+                entry['created_at'].replace('Z', '-0000'),
+                '%Y-%m-%dT%H:%M:%S.%f%z')
             values['created_by'] = entry['created_by']
             values['title'] = entry['title']
             keywords = ' '.join(str(v) for v in values.values())

@@ -16,6 +16,16 @@ class SecondaryDataForm(forms.ModelForm):
         model = SecondaryData
         exclude = ['parent']
 
+class SiteDataForm(forms.ModelForm):
+    class Meta:
+        model = SiteData
+        exclude = ['title', 'uuid', 'created_at', 'created_by', 'country']
+
+class BatDataForm(forms.ModelForm):
+    class Meta:
+        model = BatCaptureData
+        exclude = ['parent', 'title', 'created_at', 'created_by']
+
 import inspect
 from . import ec5_models
 child_models = {}
@@ -38,7 +48,7 @@ def site_table(request):
             country__in=user_viewable_countries)
     table = SiteTable(sites)
     RequestConfig(request, paginate={'per_page': 20}).configure(table)
-    return render(request, 'table.html', {'table': table})
+    return render(request, 'site_table.html', {'table': table})
 
 def raise_if_user_cannot_access_site(user, site_id):
     user_viewable_countries = [
@@ -73,6 +83,7 @@ def site(request, id):
     secondary_data_table = SecondaryDataTable(objects)
     RequestConfig(request).configure(secondary_data_table)
     return render(request, 'site.html', {
+        'form': SiteDataForm(instance=site_data),
         'site_data': site_data,
         'tables': tables,
         'secondary_data_table': secondary_data_table})
@@ -150,5 +161,6 @@ def bat(request, bat_id):
     raise_if_user_cannot_access_bat(request.user, bat_id)
     bat_data = BatCaptureData.objects.get(id=bat_id)
     return render(request, 'bat.html', {
+        'form': BatDataForm(instance=bat_data),
         'bat_data': bat_data,
         'tables': []})

@@ -4,13 +4,35 @@
 {% block title %}Site Data{% endblock %}
 
 {% block content %}
-    <h1>{{site_data.x_3_Site_name_x}}</h1>
+    <div class="panel panel-primary metadata">
+        <div class="panel-heading">Metadata</div>
+        <dl class="panel-body">
+            <dt>Created By:</dt>
+            <dd>{{ site_data.created_by }}</dd>
+            <dt>Created At:</dt>
+            <dd>{{ site_data.created_at }}</dd>
+        </dl>
+    </div>
+    <h1>{{site_data.title}}</h1>
     <a class="btn btn-default" href="{% url 'download_site' site_data.uuid %}" role="button">Download CSVs</a>
+    <div class="model-data panel panel-primary">
+        <div class="panel-heading">Primary Site Data</div>
+        <dl class="panel-body">
+            {% for field in form %}
+                <dt>{{ field.label_tag }}</dt>
+                <dd>{{ field.value }}</dd>
+            {% endfor %}
+        </dl>
+    </div>
     {% for table in tables %}
         <h4>{{table.name}}</h4>
         {% render_table table %}
     {% endfor %}
-    <h4>Secondary Data Table</h4>
-    <a class="btn btn-default" href="{% url 'attach_data' site_data.uuid %}" role="button">Attach Secondary Data</a>
+    <h4>
+        Secondary Data Table
+        <a class="btn btn-default attach-data" href="{% url 'attach_data' site_data.uuid %}" role="button">
+            Attach Secondary Data
+        </a>
+    </h4>
     {% render_table secondary_data_table %}
 {% endblock %}

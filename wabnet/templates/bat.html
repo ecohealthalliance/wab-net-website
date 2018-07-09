@@ -4,7 +4,25 @@
 {% block title %}Bat Data{% endblock %}
 
 {% block content %}
+    <div class="panel panel-primary metadata">
+        <div class="panel-heading">Metadata</div>
+        <dl class="panel-body">
+            <dt>Created By:</dt>
+            <dd>{{ bat_data.created_by }}</dd>
+            <dt>Created At:</dt>
+            <dd>{{ bat_data.created_at }}</dd>
+        </dl>
+    </div>
     <h1>{{bat_data.title}}</h1>
+    <div class="model-data panel panel-primary">
+        <div class="panel-heading">Primary Bat Data</div>
+        <dl class="panel-body">
+            {% for field in form %}
+                <dt>{{ field.label_tag }}</dt>
+                <dd>{{ field.value }}</dd>
+            {% endfor %}
+        </dl>
+    </div>
     {% for table in tables %}
         <h4>{{table.name}}</h4>
         {% render_table table %}

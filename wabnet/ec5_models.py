@@ -11,7 +11,7 @@ class SiteData(models.Model):
     ec5_is_branch = False
     ec5_ref = '92241edac9a74ee4afc7df55edf6beda_5b3f8dac25970'
     uuid = models.CharField(max_length=100, primary_key=True)
-    created_at = models.TextField()
+    created_at = models.DateTimeField()
     created_by = models.TextField()
     title = models.TextField()
     country = models.TextField(verbose_name='Country')
@@ -33,7 +33,7 @@ class x_5_Site_characterizat_x(models.Model):
     name = 'Site characterization '
     ec5_is_branch = True
     ec5_ref = '92241edac9a74ee4afc7df55edf6beda_5b3f8dac25970_5aeb5a485aa2c'
-    created_at = models.TextField()
+    created_at = models.DateTimeField()
     created_by = models.TextField()
     title = models.TextField()
     parent = models.ForeignKey(SiteData, on_delete=models.CASCADE)
@@ -71,7 +71,7 @@ class BatCaptureData(models.Model):
     name = 'Bat capture data'
     ec5_is_branch = True
     ec5_ref = '92241edac9a74ee4afc7df55edf6beda_5b3f8dac25970_5aeb5ab65aa2e'
-    created_at = models.TextField()
+    created_at = models.DateTimeField()
     created_by = models.TextField()
     title = models.TextField()
     parent = models.ForeignKey(SiteData, on_delete=models.CASCADE)
@@ -118,7 +118,7 @@ class x_82_Bat_acoustic_data_x(models.Model):
     name = 'Bat acoustic data'
     ec5_is_branch = True
     ec5_ref = '92241edac9a74ee4afc7df55edf6beda_5b3f8dac25970_5af087872284e'
-    created_at = models.TextField()
+    created_at = models.DateTimeField()
     created_by = models.TextField()
     title = models.TextField()
     parent = models.ForeignKey(SiteData, on_delete=models.CASCADE)
@@ -139,7 +139,7 @@ class x_93_Bat_necropsy_form_x(models.Model):
     name = 'Bat necropsy form'
     ec5_is_branch = True
     ec5_ref = '92241edac9a74ee4afc7df55edf6beda_5b3f8dac25970_5af0878a2284f'
-    created_at = models.TextField()
+    created_at = models.DateTimeField()
     created_by = models.TextField()
     title = models.TextField()
     parent = models.ForeignKey(SiteData, on_delete=models.CASCADE)
@@ -156,7 +156,7 @@ class x_100_Lab_results_data_x(models.Model):
     name = 'Lab results data'
     ec5_is_branch = True
     ec5_ref = '92241edac9a74ee4afc7df55edf6beda_5b3f8dac25970_5aeb619e9a9eb'
-    created_at = models.TextField()
+    created_at = models.DateTimeField()
     created_by = models.TextField()
     title = models.TextField()
     parent = models.ForeignKey(SiteData, on_delete=models.CASCADE)

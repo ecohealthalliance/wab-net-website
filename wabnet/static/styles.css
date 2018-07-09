@@ -22,3 +22,15 @@
 .table th {
     min-width: 120px;
 }
+.attach-data {
+    float: right;
+}
+.model-data dd {
+    height: 2em;
+}
+.model-data {
+    clear: both;
+}
+.metadata {
+    float: right;
+}
