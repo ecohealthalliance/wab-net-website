@@ -88,6 +88,7 @@ def site(request, id):
         'tables': tables,
         'secondary_data_table': secondary_data_table})
 
+@login_required
 def attach_data(request, id):
     if request.method == 'POST':
         form = SecondaryDataForm(request.POST, request.FILES)
@@ -105,18 +106,36 @@ def attach_data(request, id):
 from django_tables2.export.export import TableExport
 import zipfile
 from six import BytesIO
-def download_site_data(request, id):
-    raise_if_user_cannot_access_site(request.user, id)
+@login_required
+def download_all_data(request):
+    user_viewable_countries = [
+        group.name.replace('View ', '') for group in request.user.groups.all()]
     zip_buffer = BytesIO()
     zipf = zipfile.ZipFile(zip_buffer, 'a')
-    for model_name, child_model in list(child_models.items()) + [('secondary_data', SecondaryData)]:
+    for model_name, child_model in list(child_models.items()) + [
+        ('SiteData', SiteData),
+        ('SecondaryData', SecondaryData)]:
         class MyTable(django_tables2.Table):
             name = child_model.name
             class Meta:
                 model = child_model
                 template_name = 'django_tables2/bootstrap.html'
                 exclude = ('id', 'parent',)
-        objects = child_model.objects.filter(parent=id)
+        if len(user_viewable_countries) == 0:
+            objects = child_model.objects.none()
+        elif 'all countries' in user_viewable_countries:
+            objects = child_model.objects.all()
+        else:
+            tmp_model = child_model
+            ancestors = 0
+            while hasattr(tmp_model, 'parent'):
+                tmp_model = tmp_model.parent.field.related_model
+                ancestors += 1
+            # Build a query that requires the root ancestor to have a country
+            # property matching matching one of the user's viewalbe countries.
+            objects = child_model.objects.filter(**{
+                ('parent__' * ancestors) + "__country__in": user_viewable_countries
+            })
         table = MyTable(objects)
         response = HttpResponse(content_type='application/octet-stream')
         zipf.writestr(model_name + ".csv", TableExport('csv', table).export())

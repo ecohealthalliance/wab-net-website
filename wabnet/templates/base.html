@@ -22,8 +22,8 @@
   
           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
-              <li class="{% if request.path|slice:':7' == '/sites/' %}active{% endif %}"><a href="/sites">Sites</a></li>
-              <li class="{% if request.path|slice:':6' == '/bats/' %}active{% endif %}"><a href="/bats" class="">Bats</a></li>
+              <li class="{% if request.resolver_match.view_name == 'sites' %}active{% endif %}"><a href="{% url 'sites' %}">Sites</a></li>
+              <li class="{% if request.resolver_match.view_name == 'bats' %}active{% endif %}"><a href="{% url 'bats' %}" class="">Bats</a></li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
               {% if user.is_authenticated %}
@@ -33,6 +33,7 @@
                     {% if request.user.is_superuser %}
                       <li><a href="/admin/">Admin Page</a></li>
                     {% endif %}
+                    <li><a href="{% url 'download_all_data' %}">Download Data CSVs</a></li>
                     <li><a href="/accounts/logout/?next=/">Log Out</a></li>
                   </ul>
                 </li>
