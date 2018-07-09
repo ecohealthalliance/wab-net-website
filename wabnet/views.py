@@ -1,3 +1,4 @@
+import datetime
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 import django.forms as forms
@@ -14,7 +15,7 @@ from .tables import SiteTable, BatTable, SecondaryDataTable
 class SecondaryDataForm(forms.ModelForm):
     class Meta:
         model = SecondaryData
-        exclude = ['parent']
+        fields = ['file']
 
 class SiteDataForm(forms.ModelForm):
     class Meta:
@@ -95,6 +96,8 @@ def attach_data(request, id):
         if form.is_valid():
             secondary_data = form.save(commit=False)
             secondary_data.parent = SiteData.objects.get(uuid=id)
+            secondary_data.created_by = request.user
+            secondary_data.created_at = datetime.datetime.now()
             secondary_data.save()
             return HttpResponseRedirect('/sites/' + id)
         else:
