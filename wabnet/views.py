@@ -65,8 +65,8 @@ def raise_if_user_cannot_access_site(user, site_id):
 @login_required
 def site(request, id):
     raise_if_user_cannot_access_site(request.user, id)
-    tables = []
     site_data = SiteData.objects.get(uuid=id)
+    tables = []
     for model_name, child_model in child_models.items():
         class MyTable(django_tables2.Table):
             name = child_model.name
@@ -80,7 +80,6 @@ def site(request, id):
         RequestConfig(request).configure(table)
         tables.append(table)
     objects = SecondaryData.objects.filter(parent=id)
-    print(len(objects))
     secondary_data_table = SecondaryDataTable(objects)
     RequestConfig(request).configure(secondary_data_table)
     return render(request, 'site.html', {
@@ -181,8 +180,23 @@ def raise_if_user_cannot_access_bat(user, bat_id):
 @login_required
 def bat(request, bat_id):
     raise_if_user_cannot_access_bat(request.user, bat_id)
+    tables = []
+    for model_name, child_model in child_models.items():
+        if child_model.parent.field.related_model != BatCaptureData:
+            continue
+        class MyTable(django_tables2.Table):
+            name = child_model.name
+            class Meta:
+                model = child_model
+                template_name = 'django_tables2/bootstrap.html'
+                exclude = ('id', 'parent',)
+                sequence = ('title', '...')
+        objects = child_model.objects.filter(parent=bat_id)
+        table = MyTable(objects)
+        RequestConfig(request).configure(table)
+        tables.append(table)
     bat_data = BatCaptureData.objects.get(id=bat_id)
     return render(request, 'bat.html', {
         'form': BatDataForm(instance=bat_data),
         'bat_data': bat_data,
-        'tables': []})
+        'tables': tables})
