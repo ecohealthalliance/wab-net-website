@@ -1,6 +1,6 @@
-# These models were generated from the Epicollect 5 project via generate_models.py
+# These models were generated from an Epicollect 5 project via generate_models.py
 from django.db import models
-from . import entity_keywords_model
+from ec5_tools import entity_keywords_model
 from django.contrib.contenttypes.fields import GenericRelation
 
 project_name = 'nathan-test-wabnet3'
@@ -20,12 +20,12 @@ class SiteData(models.Model):
     x_34_Weather_condition_x = models.TextField(verbose_name='Weather conditions prior to and during trapping?')
     x_35_Time_trapping_beg_x = models.TextField(verbose_name='Time trapping began (nets open)?')
     x_36_Time_trapping_end_x = models.TextField(verbose_name='Time trapping ended (nets closed)?')
-    x_37_Number_of_26_mete_x = models.TextField(verbose_name='Number of 2.6 meter nets?')
-    x_38_Number_of_4_meter_x = models.TextField(verbose_name='Number of 4 meter nets?')
-    x_39_Number_of_6_meter_x = models.TextField(verbose_name='Number of 6 meter nets?')
-    x_40_Number_of_9_meter_x = models.TextField(verbose_name='Number of 9 meter nets?')
-    x_41_Number_of_12_mete_x = models.TextField(verbose_name='Number of 12 meter nets?')
-    x_42_Number_of_harp_tr_x = models.TextField(verbose_name='Number of harp traps?')
+    x_37_Number_of_26_mete_x = models.IntegerField(verbose_name='Number of 2.6 meter nets?')
+    x_38_Number_of_4_meter_x = models.IntegerField(verbose_name='Number of 4 meter nets?')
+    x_39_Number_of_6_meter_x = models.IntegerField(verbose_name='Number of 6 meter nets?')
+    x_40_Number_of_9_meter_x = models.IntegerField(verbose_name='Number of 9 meter nets?')
+    x_41_Number_of_12_mete_x = models.IntegerField(verbose_name='Number of 12 meter nets?')
+    x_42_Number_of_harp_tr_x = models.IntegerField(verbose_name='Number of harp traps?')
 
 
 class x_5_Site_characterizat_x(models.Model):
@@ -33,6 +33,7 @@ class x_5_Site_characterizat_x(models.Model):
     name = 'Site characterization '
     ec5_is_branch = True
     ec5_ref = '92241edac9a74ee4afc7df55edf6beda_5b3f8dac25970_5aeb5a485aa2c'
+    id = models.CharField(max_length=100, primary_key=True)
     created_at = models.DateTimeField()
     created_by = models.TextField()
     title = models.TextField()
@@ -71,6 +72,7 @@ class BatCaptureData(models.Model):
     name = 'Bat capture data'
     ec5_is_branch = True
     ec5_ref = '92241edac9a74ee4afc7df55edf6beda_5b3f8dac25970_5aeb5ab65aa2e'
+    id = models.CharField(max_length=100, primary_key=True)
     created_at = models.DateTimeField()
     created_by = models.TextField()
     title = models.TextField()
@@ -118,6 +120,7 @@ class x_82_Bat_acoustic_data_x(models.Model):
     name = 'Bat acoustic data'
     ec5_is_branch = True
     ec5_ref = '92241edac9a74ee4afc7df55edf6beda_5b3f8dac25970_5af087872284e'
+    id = models.CharField(max_length=100, primary_key=True)
     created_at = models.DateTimeField()
     created_by = models.TextField()
     title = models.TextField()
@@ -139,6 +142,7 @@ class x_93_Bat_necropsy_form_x(models.Model):
     name = 'Bat necropsy form'
     ec5_is_branch = True
     ec5_ref = '92241edac9a74ee4afc7df55edf6beda_5b3f8dac25970_5af0878a2284f'
+    id = models.CharField(max_length=100, primary_key=True)
     created_at = models.DateTimeField()
     created_by = models.TextField()
     title = models.TextField()
@@ -156,6 +160,7 @@ class x_100_Lab_results_data_x(models.Model):
     name = 'Lab results data'
     ec5_is_branch = True
     ec5_ref = '92241edac9a74ee4afc7df55edf6beda_5b3f8dac25970_5aeb619e9a9eb'
+    id = models.CharField(max_length=100, primary_key=True)
     created_at = models.DateTimeField()
     created_by = models.TextField()
     title = models.TextField()

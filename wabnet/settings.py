@@ -27,6 +27,7 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'wabnet',
+    'ec5_tools',
     'django_tables2',
     'django.contrib.sites',
     'allauth',
@@ -78,7 +79,7 @@ WSGI_APPLICATION = 'wabnet.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': os.environ.get('DATABASE_PATH', os.path.join(BASE_DIR, 'db.sqlite3')),
     }
 }
 

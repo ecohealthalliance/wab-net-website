@@ -8,7 +8,7 @@ from django.core.exceptions import PermissionDenied
 from django_tables2 import RequestConfig
 import django_tables2
 from .models import SiteData, BatCaptureData, SecondaryData
-from .entity_keywords_model import EntityKeywords
+from ec5_tools.entity_keywords_model import EntityKeywords
 from .tables import SiteTable, BatTable, SecondaryDataTable
 
 
@@ -25,7 +25,7 @@ class SiteDataForm(forms.ModelForm):
 class BatDataForm(forms.ModelForm):
     class Meta:
         model = BatCaptureData
-        exclude = ['parent', 'title', 'created_at', 'created_by']
+        exclude = ['parent', 'title', 'created_at', 'created_by', 'id']
 
 import inspect
 from . import ec5_models
