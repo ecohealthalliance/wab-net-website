@@ -62,13 +62,19 @@ class Command(BaseCommand):
                 result.append("    parent = models.ForeignKey(%s, on_delete=models.CASCADE)" % format_name(all_form_mappings[parent_ref]))
             def generate_vars_from_inputs(inputs):
                 for inp in inputs:
+                    # if inp['ref'] not in all_form_mappings:
+                    #     print(inp)
                     if inp['type'] == 'group':
                         generate_vars_from_inputs(inp['group'])
                     elif inp['type'] in ['photo', 'video', 'audio']:
                         result.append("    %s = models.FileField(upload_to='ec5/', verbose_name='%s')" % (format_name(all_form_mappings[inp['ref']]), inp['question']))
                     elif inp['type'] == 'integer':
-                        result.append("    %s = models.IntegerField(verbose_name='%s')" % (format_name(all_form_mappings[inp['ref']]), inp['question']))
-                    elif inp['type'] != 'branch':
+                        result.append("    %s = models.IntegerField(verbose_name='%s', blank=True, null=True)" % (format_name(all_form_mappings[inp['ref']]), inp['question']))
+                    elif inp['type'] == 'branch':
+                        pass
+                    elif inp['type'] == 'readme':
+                        pass
+                    else:
                         result.append("    %s = models.TextField(verbose_name='%s')" % (format_name(all_form_mappings[inp['ref']]), inp['question']))
             generate_vars_from_inputs(inputs)
             for inp in inputs:
@@ -86,6 +92,13 @@ from django.contrib.contenttypes.fields import GenericRelation
 project_name = '%s'
 
 """ % resp_json['data']['project']['slug'])
+            parent_form_ref = None
             for form in resp_json['data']['project']['forms']:
                 all_form_mappings[form['ref']] = form['slug'].replace('-', '_')
-                f.write(generate_form_models(form['inputs'], form['ref'], name=form['name']))
+                f.write(generate_form_models(
+                    form['inputs'],
+                    form['ref'],
+                    name=form['name'],
+                    parent_ref=parent_form_ref))
+                f.write('\n\n')
+                parent_form_ref = form['ref']

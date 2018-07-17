@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django_tables2 import RequestConfig
 import django_tables2
-from .models import SiteData, BatCaptureData, SecondaryData
+from .models import SiteData, BatData, SecondaryData, TrappingEvent
 from ec5_tools.entity_keywords_model import EntityKeywords
 from .tables import SiteTable, BatTable, SecondaryDataTable
 
@@ -24,8 +24,13 @@ class SiteDataForm(forms.ModelForm):
 
 class BatDataForm(forms.ModelForm):
     class Meta:
-        model = BatCaptureData
-        exclude = ['parent', 'title', 'created_at', 'created_by', 'id']
+        model = BatData
+        exclude = ['parent', 'title', 'created_at', 'created_by', 'uuid']
+
+class TrappingEventForm(forms.ModelForm):
+    class Meta:
+        model = TrappingEvent
+        exclude = ['title', 'uuid', 'parent']
 
 import inspect
 from . import ec5_models
@@ -63,46 +68,47 @@ def raise_if_user_cannot_access_site(user, site_id):
             raise PermissionDenied
 
 @login_required
-def site(request, id):
-    raise_if_user_cannot_access_site(request.user, id)
-    site_data = SiteData.objects.get(uuid=id)
+def site_view(request, site_id):
+    raise_if_user_cannot_access_site(request.user, site_id)
+    site_data = SiteData.objects.get(uuid=site_id)
     tables = []
     for model_name, child_model in child_models.items():
+        if child_model.parent.field.related_model != SiteData:
+            continue
         class MyTable(django_tables2.Table):
             name = child_model.name
             class Meta:
                 model = child_model
                 template_name = 'django_tables2/bootstrap.html'
-                exclude = ('id', 'parent',)
+                exclude = ('id', 'uuid', 'parent',)
                 sequence = ('title', '...')
-        objects = child_model.objects.filter(parent=id)
+        objects = child_model.objects.filter(parent=site_id)
         table = MyTable(objects)
         RequestConfig(request).configure(table)
         tables.append(table)
-    objects = SecondaryData.objects.filter(parent=id)
-    secondary_data_table = SecondaryDataTable(objects)
-    RequestConfig(request).configure(secondary_data_table)
+    objects = BatData.objects.filter(parent__parent=site_id)
+    table = BatTable(objects)
+    RequestConfig(request).configure(table)
+    tables.append(table)
     return render(request, 'site.html', {
         'form': SiteDataForm(instance=site_data),
         'site_data': site_data,
-        'tables': tables,
-        'secondary_data_table': secondary_data_table})
+        'tables': tables})
 
 @login_required
-def attach_data(request, id):
+def attach_data(request, bat_id):
     if request.method == 'POST':
         form = SecondaryDataForm(request.POST, request.FILES)
         if form.is_valid():
             secondary_data = form.save(commit=False)
-            secondary_data.parent = SiteData.objects.get(uuid=id)
+            secondary_data.parent = BatData.objects.get(uuid=bat_id)
             secondary_data.created_by = request.user
             secondary_data.created_at = datetime.datetime.now()
             secondary_data.save()
-            return HttpResponseRedirect('/sites/' + id)
+            return HttpResponseRedirect('/bats/' + bat_id)
         else:
             return render(request, 'attach.html', {'form': form})
-    site_data = SiteData.objects.get(uuid=id)
-    secondary_data = SecondaryData(parent=site_data)
+    secondary_data = SecondaryData(parent=BatData.objects.get(uuid=bat_id))
     return render(request, 'attach.html', {'form': SecondaryDataForm(instance=secondary_data)})
 
 from django_tables2.export.export import TableExport
@@ -122,7 +128,7 @@ def download_all_data(request):
             class Meta:
                 model = child_model
                 template_name = 'django_tables2/bootstrap.html'
-                exclude = ('id', 'parent',)
+                exclude = ('id', 'uuid', 'parent',)
         if len(user_viewable_countries) == 0:
             objects = child_model.objects.none()
         elif 'all countries' in user_viewable_countries:
@@ -156,9 +162,9 @@ def bat_table(request):
     user_viewable_countries = [
         group.name.replace('View ', '') for group in request.user.groups.all()]
     if 'all countries' in user_viewable_countries:
-        bats = BatCaptureData.objects.all()
+        bats = BatData.objects.all()
     else:
-        bats = BatCaptureData.objects.filter(
+        bats = BatData.objects.filter(
             parent__country__in=user_viewable_countries)
     if request.GET.get('q'):
         bats = bats.filter(keywords__keywords__contains=request.GET.get('q'))
@@ -172,31 +178,36 @@ def raise_if_user_cannot_access_bat(user, bat_id):
     if 'all countries' in user_viewable_countries:
         return
     else:
-        bats = BatCaptureData.objects.filter(
-            parent__country__in=user_viewable_countries, id=bat_id)
+        bats = BatData.objects.filter(
+            parent__country__in=user_viewable_countries, uuid=bat_id)
         if len(bats) == 0:
             raise PermissionDenied
 
 @login_required
-def bat(request, bat_id):
+def bat_view(request, bat_id):
     raise_if_user_cannot_access_bat(request.user, bat_id)
     tables = []
     for model_name, child_model in child_models.items():
-        if child_model.parent.field.related_model != BatCaptureData:
+        if child_model.parent.field.related_model != BatData:
             continue
         class MyTable(django_tables2.Table):
             name = child_model.name
             class Meta:
                 model = child_model
                 template_name = 'django_tables2/bootstrap.html'
-                exclude = ('id', 'parent',)
+                exclude = ('id', 'uuid', 'parent',)
                 sequence = ('title', '...')
         objects = child_model.objects.filter(parent=bat_id)
         table = MyTable(objects)
         RequestConfig(request).configure(table)
         tables.append(table)
-    bat_data = BatCaptureData.objects.get(id=bat_id)
+    bat_data = BatData.objects.get(uuid=bat_id)
+    objects = SecondaryData.objects.filter(parent=bat_id)
+    secondary_data_table = SecondaryDataTable(objects)
+    RequestConfig(request).configure(secondary_data_table)
     return render(request, 'bat.html', {
         'form': BatDataForm(instance=bat_data),
         'bat_data': bat_data,
-        'tables': tables})
+        'trapping_event_form': TrappingEventForm(instance=bat_data.parent),
+        'tables': tables,
+        'secondary_data_table': secondary_data_table})

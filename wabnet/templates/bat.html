@@ -23,8 +23,37 @@
             {% endfor %}
         </dl>
     </div>
+    
     {% for table in tables %}
-        <h4>{{table.name}}</h4>
-        {% render_table table %}
+        <div class="model-data panel panel-primary">
+            <div class="panel-heading">{{table.name}}</div>
+            <div class="panel-body">
+                {% render_table table %}
+            </div>
+        </div>
     {% endfor %}
+    <div class="model-data panel panel-primary">
+        <div class="panel-heading">
+            Secondary Data Table
+            <a class="attach-data" href="{% url 'attach_data' bat_data.uuid %}" role="button">
+                Attach Secondary Data
+            </a>
+        </div>
+        <div class="panel-body">
+        {% render_table secondary_data_table %}
+        </div>
+    </div>
+
+    <div class="model-data panel panel-primary">
+        <div class="panel-heading">Trapping Event Data</div>
+        <dl class="panel-body">
+            <dt>Site</dt>
+            <dd><a href="{% url 'sites' bat_data.parent.parent.uuid %}">{{ bat_data.parent.parent.title }}</a></dd>
+            {% for field in trapping_event_form %}
+                <dt>{{ field.label_tag }}</dt>
+                <dd>{{ field.value }}</dd>
+            {% endfor %}
+        </dl>
+    </div>
+
 {% endblock %}

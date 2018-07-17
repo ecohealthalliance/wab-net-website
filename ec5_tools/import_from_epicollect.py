@@ -62,6 +62,7 @@ def import_from_epicollect(ec5_models, only_new_data=False):
         params  = {}
         if model.ec5_is_branch:
             params['branch_ref'] = model.ec5_ref
+            params['form_ref'] = model.parent.field.related_model.ec5_ref
         else:
             params['form_ref'] = model.ec5_ref
         if only_new_data:
@@ -115,6 +116,8 @@ def import_from_epicollect(ec5_models, only_new_data=False):
                 values['id'] = idhash.hexdigest()
             if 'ec5_branch_owner_uuid' in entry:
                 values['parent'] = model.parent.field.related_model(entry['ec5_branch_owner_uuid'])
+            elif 'ec5_parent_uuid' in entry:
+                values['parent'] = model.parent.field.related_model(entry['ec5_parent_uuid'])
             model_instance = model(**values)
             for field_name, file_data in file_values.items():
                 getattr(model_instance, field_name).save(*file_data, save=False)
@@ -125,6 +128,7 @@ def import_from_epicollect(ec5_models, only_new_data=False):
     # Create group for each Country
     from django.contrib.auth.models import Group
     for site in ec5_models.SiteData.objects.all():
-        new_group, created = Group.objects.get_or_create(name="View " + site.country)
+        if site.country:
+            new_group, created = Group.objects.get_or_create(name="View " + site.country)
     Group.objects.get_or_create(name="View all countries")
     return objects_created

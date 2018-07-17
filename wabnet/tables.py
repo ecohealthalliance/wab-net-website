@@ -1,6 +1,6 @@
 # tutorial/tables.py
 import django_tables2 as tables
-from .models import SiteData, BatCaptureData, SecondaryData
+from .models import SiteData, BatData, SecondaryData
 from django_tables2.utils import A
 
 class SiteTable(tables.Table):
@@ -15,14 +15,15 @@ class SiteTable(tables.Table):
         attrs={'th':{'hidden': True}})
 
 class BatTable(tables.Table):
+    name = "Bat Information"
     class Meta:
-        model = BatCaptureData
+        model = BatData
         template_name = 'django_tables2/bootstrap.html'
-        exclude = ('id', 'parent',)
+        exclude = ('uuid', 'parent',)
         sequence = ('title', '...')
 
     title = tables.LinkColumn('bats',
-        args=[A('id')])
+        args=[A('uuid')])
 
 class SecondaryDataTable(tables.Table):
     name = "Secondary Data"

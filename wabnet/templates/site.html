@@ -24,14 +24,10 @@
         </dl>
     </div>
     {% for table in tables %}
-        <h4>{{table.name}}</h4>
-        {% render_table table %}
+        <div class="model-data panel panel-primary">
+            <div class="panel-heading">{{table.name}}</div>
+            {% render_table table %}
+        </div>
     {% endfor %}
-    <h4>
-        Secondary Data Table
-        <a class="btn btn-default attach-data" href="{% url 'attach_data' site_data.uuid %}" role="button">
-            Attach Secondary Data
-        </a>
-    </h4>
-    {% render_table secondary_data_table %}
+
 {% endblock %}
