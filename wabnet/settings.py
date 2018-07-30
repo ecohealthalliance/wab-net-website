@@ -137,3 +137,11 @@ EC5_PROJECT_NAME = os.environ.get('EC5_PROJECT_NAME')
 EC5_SECRET_KEY = os.environ.get('EC5_SECRET_KEY')
 
 EC5_CLIENT_ID = os.environ.get('EC5_CLIENT_ID')
+
+EMAIL_HOST = "email-smtp.us-east-1.amazonaws.com"
+
+EMAIL_PORT = 465
+
+EMAIL_HOST_USER = os.environ.get('SMTP_USER')
+
+EMAIL_HOST_PASSWORD = os.environ.get('SMTP_PASSWORD')

@@ -15,5 +15,5 @@ python manage.py runserver
 python manage.py generate_models wabnet
 python manage.py makemigrations wabnet
 python manage.py migrate
-python manage.py import_from_epicollect
+python manage.py import_from_epicollect wabnet.ec5_models
 ```

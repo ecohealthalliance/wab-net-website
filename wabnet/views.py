@@ -11,6 +11,17 @@ from .models import SiteData, BatData, SecondaryData, TrappingEvent
 from ec5_tools.entity_keywords_model import EntityKeywords
 from .tables import SiteTable, BatTable, SecondaryDataTable
 
+import inspect
+from . import ec5_models
+child_models = {}
+for name, obj in inspect.getmembers(ec5_models):
+    if inspect.isclass(obj) and issubclass(obj, models.Model):
+        if hasattr(obj, 'parent'):
+            child_models[name] = obj
+
+bat_family_fields = [field
+    for field in BatData._meta.get_fields()
+    if isinstance(field, models.TextField) and field.verbose_name.startswith("Family:")]
 
 class SecondaryDataForm(forms.ModelForm):
     class Meta:
@@ -25,20 +36,13 @@ class SiteDataForm(forms.ModelForm):
 class BatDataForm(forms.ModelForm):
     class Meta:
         model = BatData
-        exclude = ['parent', 'title', 'created_at', 'created_by', 'uuid']
+        exclude = ['parent', 'title', 'created_at', 'created_by', 'uuid'] + [f.name for f in bat_family_fields]
 
 class TrappingEventForm(forms.ModelForm):
     class Meta:
         model = TrappingEvent
         exclude = ['title', 'uuid', 'parent']
 
-import inspect
-from . import ec5_models
-child_models = {}
-for name, obj in inspect.getmembers(ec5_models):
-    if inspect.isclass(obj) and issubclass(obj, models.Model):
-        if hasattr(obj, 'parent'):
-            child_models[name] = obj
 
 def splash(request):
     return render(request, 'splash.html')
@@ -161,11 +165,13 @@ def download_all_data(request):
 def bat_table(request):
     user_viewable_countries = [
         group.name.replace('View ', '') for group in request.user.groups.all()]
+    if len(user_viewable_countries) == 0:
+        bats = BatData.objects.none()
     if 'all countries' in user_viewable_countries:
         bats = BatData.objects.all()
     else:
         bats = BatData.objects.filter(
-            parent__country__in=user_viewable_countries)
+            parent__parent__country__in=user_viewable_countries)
     if request.GET.get('q'):
         bats = bats.filter(keywords__keywords__contains=request.GET.get('q'))
     table = BatTable(bats)
@@ -179,7 +185,7 @@ def raise_if_user_cannot_access_bat(user, bat_id):
         return
     else:
         bats = BatData.objects.filter(
-            parent__country__in=user_viewable_countries, uuid=bat_id)
+            parent__parent__country__in=user_viewable_countries, uuid=bat_id)
         if len(bats) == 0:
             raise PermissionDenied
 
@@ -205,9 +211,15 @@ def bat_view(request, bat_id):
     objects = SecondaryData.objects.filter(parent=bat_id)
     secondary_data_table = SecondaryDataTable(objects)
     RequestConfig(request).configure(secondary_data_table)
+    bat_family_field = None
+    for field in bat_family_fields:
+        if bat_data.x_47_Bat_family_x in field.verbose_name:
+            bat_family_field = getattr(bat_data, field.name)
+            break
     return render(request, 'bat.html', {
         'form': BatDataForm(instance=bat_data),
         'bat_data': bat_data,
+        'bat_species': bat_family_field,
         'trapping_event_form': TrappingEventForm(instance=bat_data.parent),
         'tables': tables,
         'secondary_data_table': secondary_data_table})
