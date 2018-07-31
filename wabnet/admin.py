@@ -16,3 +16,8 @@ admin.site.unregister(EmailAddress)
 
 from django.contrib.sites.models import Site
 admin.site.unregister(Site)
+
+my_site = Site.objects.get(pk=1)
+my_site.domain = 'wabnet.eha.io'
+my_site.name = 'WAB-net'
+my_site.save()

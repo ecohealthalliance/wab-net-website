@@ -34,12 +34,12 @@
                       <li><a href="/admin/">Admin Page</a></li>
                     {% endif %}
                     <li><a href="{% url 'download_all_data' %}">Download Data CSVs</a></li>
-                    <li><a href="/accounts/password/change">Change Password</a></li>
-                    <li><a href="/accounts/logout/?next=/">Log Out</a></li>
+                    <li><a href="/accounts/password/change?next={{ request.path }}">Change Password</a></li>
+                    <li><a href="/accounts/logout/?next={{ request.path }}">Log Out</a></li>
                   </ul>
                 </li>
               {% else %}
-                <li><a href="/accounts/login/?next=/">Log In</a></li>
+                <li><a href="/accounts/login/?next={{ request.path }}">Log In</a></li>
               {% endif %}
             </ul>
           </div>
