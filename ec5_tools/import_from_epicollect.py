@@ -10,6 +10,7 @@ from django.db import models
 import re
 from .utils import format_name
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 
 def import_from_epicollect(ec5_models, only_new_data=False):
     from .entity_keywords_model import EntityKeywords
@@ -72,13 +73,22 @@ def import_from_epicollect(ec5_models, only_new_data=False):
                 params['filter_from'] = (
                     latest_created_at + datetime.timedelta(seconds=1)
                 ).strftime('%Y-%m-%dT%H:%M:%S')
-        response = requests.get('https://five.epicollect.net/api/export/entries/' + settings.EC5_PROJECT_NAME,
-            params=params,
-            headers={
-                'Authorization': 'Bearer ' + token['access_token']
-            })
-        response.raise_for_status()
-        for entry in response.json()['data']['entries']:
+        page = 1
+        total_pages = 1
+        all_entries = []
+        while page <= total_pages:
+            params['page'] = page
+            response = requests.get('https://five.epicollect.net/api/export/entries/' + settings.EC5_PROJECT_NAME,
+                params=params,
+                headers={
+                    'Authorization': 'Bearer ' + token['access_token']
+                })
+            response.raise_for_status()
+            response_json = response.json()
+            all_entries += response_json['data']['entries']
+            total_pages = response_json['meta']['last_page']
+            page += 1
+        for entry in all_entries:
             values = {}
             file_values = {}
             for key, value in entry.items():
@@ -86,15 +96,24 @@ def import_from_epicollect(ec5_models, only_new_data=False):
                     continue
                 if re.match(r"\d+_.*", key) and format_name(key) not in ec5_model_dict:
                     if isinstance(model._meta.get_field(format_name(key)), models.FileField):
-                        response = requests.get('https://five.epicollect.net/api/export/media/' + settings.EC5_PROJECT_NAME,
-                            params={
+                        if value.endswith('.jpg'):
+                            params = {
                                 'type': 'photo',
                                 'format': 'entry_original',
                                 'name': value
-                            },
+                            }
+                        else:
+                            params = {
+                                'type': 'audio',
+                                'format': 'audio',
+                                'name': value
+                            }
+                        response = requests.get('https://five.epicollect.net/api/export/media/' + settings.EC5_PROJECT_NAME,
+                            params=params,
                             headers={
                                 'Authorization': 'Bearer ' + token['access_token']
                             })
+                        response.raise_for_status()
                         file_values[format_name(key)] = (value, ContentFile(response.content),)
                     else:
                         values[format_name(key)] = value
@@ -114,14 +133,17 @@ def import_from_epicollect(ec5_models, only_new_data=False):
                 idhash.update(entry['created_at'].encode('ascii', 'replace'))
                 idhash.update(entry['created_by'].encode('ascii', 'replace'))
                 values['id'] = idhash.hexdigest()
-            if 'ec5_branch_owner_uuid' in entry:
-                values['parent'] = model.parent.field.related_model(entry['ec5_branch_owner_uuid'])
-            elif 'ec5_parent_uuid' in entry:
-                values['parent'] = model.parent.field.related_model(entry['ec5_parent_uuid'])
+            parent_id = entry.get('ec5_branch_owner_uuid', entry.get('ec5_parent_uuid'))
+            if parent_id:
+                values['parent'] = model.parent.field.related_model.objects.get(pk=parent_id)
             model_instance = model(**values)
             for field_name, file_data in file_values.items():
                 getattr(model_instance, field_name).save(*file_data, save=False)
-            model_instance.save()
+            try:
+                model_instance.save()
+            except:
+                print(values)
+                raise
             objects_created += 1
             EntityKeywords(content_object=model_instance, keywords=keywords).save()
 

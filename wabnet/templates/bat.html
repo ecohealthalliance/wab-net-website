@@ -17,9 +17,15 @@
     <div class="model-data panel panel-primary">
         <div class="panel-heading">Primary Bat Data</div>
         <dl class="panel-body">
-            {% for field in form %}
-                <dt>{{ field.label_tag }}</dt>
-                <dd>{{ field.value }}</dd>
+            {% for field, value in main_data %}
+                <dt>{{ field.verbose_name }}</dt>
+                <dd>
+                    {% if value.url|length > 0 %}
+                        <a href="{{ value.url }}">{{value.url}}</a>
+                    {% else %}
+                        {{ value }}
+                    {% endif %}
+                </dd>
             {% endfor %}
             <dt>Bat Species:</dt>
             <dd>{{ bat_species }}</dd>

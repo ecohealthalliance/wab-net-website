@@ -33,11 +33,6 @@ class SiteDataForm(forms.ModelForm):
         model = SiteData
         exclude = ['title', 'uuid', 'created_at', 'created_by', 'country']
 
-class BatDataForm(forms.ModelForm):
-    class Meta:
-        model = BatData
-        exclude = ['parent', 'title', 'created_at', 'created_by', 'uuid'] + [f.name for f in bat_family_fields]
-
 class TrappingEventForm(forms.ModelForm):
     class Meta:
         model = TrappingEvent
@@ -211,15 +206,27 @@ def bat_view(request, bat_id):
     objects = SecondaryData.objects.filter(parent=bat_id)
     secondary_data_table = SecondaryDataTable(objects)
     RequestConfig(request).configure(secondary_data_table)
-    bat_family_field = None
+    bat_species = None
+    bat_family = None
+    for field in bat_data._meta.get_fields():
+        if field.name.endswith('_Bat_family_x'):
+            bat_family = getattr(bat_data, field.name)
     for field in bat_family_fields:
-        if bat_data.x_47_Bat_family_x in field.verbose_name:
-            bat_family_field = getattr(bat_data, field.name)
+        if bat_family in field.verbose_name:
+            bat_species = getattr(bat_data, field.name)
             break
+
+    exclude_fields = ['parent', 'title', 'created_at', 'created_by', 'uuid'] + [f.name for f in bat_family_fields]
+    main_data = []
+    for field in BatData._meta.get_fields():
+        if field.is_relation or field.name in exclude_fields:
+            continue
+        main_data.append((field, getattr(bat_data, field.name),))
+    print(main_data)
     return render(request, 'bat.html', {
-        'form': BatDataForm(instance=bat_data),
+        'main_data': main_data,
         'bat_data': bat_data,
-        'bat_species': bat_family_field,
+        'bat_species': bat_species,
         'trapping_event_form': TrappingEventForm(instance=bat_data.parent),
         'tables': tables,
         'secondary_data_table': secondary_data_table})
