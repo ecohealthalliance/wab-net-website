@@ -222,7 +222,6 @@ def bat_view(request, bat_id):
         if field.is_relation or field.name in exclude_fields:
             continue
         main_data.append((field, getattr(bat_data, field.name),))
-    print(main_data)
     return render(request, 'bat.html', {
         'main_data': main_data,
         'bat_data': bat_data,
