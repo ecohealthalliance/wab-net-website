@@ -5,6 +5,8 @@
       <title>{% block title %}WAB-net{% endblock %}</title>
       <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
       <link rel="stylesheet" href="{% static "styles.css" %}" />
+      {% block head_additions %}
+      {% endblock %}
     </head>
     <body>
       {% block navbar %}
@@ -26,6 +28,7 @@
               <li class="{% if request.resolver_match.view_name == 'bats' %}active{% endif %}"><a href="{% url 'bats' %}" class="">Bats</a></li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
+              <li class="{% if request.resolver_match.view_name == 'about' %}active{% endif %}"><a href="{% url 'about' %}" class="">About</a></li>
               {% if user.is_authenticated %}
                 <li class="dropdown">
                   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Settings <span class="caret"></span></a>

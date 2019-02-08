@@ -11,10 +11,28 @@ import re
 from .utils import format_name
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from .entity_keywords_model import EntityKeywords
+import inspect
+from django.contrib.auth.models import Group
+from django.db import transaction
+from django.db.backends.signals import connection_created
 
 def import_from_epicollect(ec5_models, only_new_data=False):
-    from .entity_keywords_model import EntityKeywords
-    import inspect
+    # Rolling back the database does not restore the EC5 media directory,
+    # so exception handling is used here to handle the restoration.
+    ec5_media_path = os.path.join(settings.MEDIA_ROOT, 'ec5')
+    ec5_media_backup_path = os.path.join(settings.MEDIA_ROOT, 'ec5backup')
+    try:
+        import_from_epicollect_transaction(ec5_models, only_new_data)
+    except:
+        if not only_new_data and os.path.exists(ec5_media_backup_path):
+            shutil.move(ec5_media_backup_path, ec5_media_path)
+        raise
+    if not only_new_data:
+        shutil.rmtree(ec5_media_backup_path)
+
+@transaction.atomic
+def import_from_epicollect_transaction(ec5_models, only_new_data):
     ec5_model_dict = {}
     root_model = None
     for name, obj in inspect.getmembers(ec5_models):
@@ -34,23 +52,6 @@ def import_from_epicollect(ec5_models, only_new_data=False):
                 sorted_model_items.append(model_item)
                 unresolved_models.remove(model_item)
 
-    if not only_new_data:
-        # Disable foreign key constraint checking because deleting the old data
-        # will temporarily break referential integrity until  it is re-imported.
-        from django.db.backends.signals import connection_created
-        def disable_foreign_keys(sender, connection, **kwargs):
-            """Enable integrity constraint with sqlite."""
-            if connection.vendor == 'sqlite':
-                cursor = connection.cursor()
-                cursor.execute('PRAGMA foreign_keys = OFF;')
-        connection_created.connect(disable_foreign_keys)
-        
-        # Delete ec5 media
-        if os.path.exists(os.path.join(settings.MEDIA_ROOT, 'ec5')):
-            shutil.rmtree(os.path.join(settings.MEDIA_ROOT, 'ec5'))
-        # Delete all previously imported data
-        root_model.objects.all().delete()
-
     response = requests.post('https://five.epicollect.net/api/oauth/token', data={
       'grant_type': 'client_credentials',
       'client_id': settings.EC5_CLIENT_ID,
@@ -58,6 +59,24 @@ def import_from_epicollect(ec5_models, only_new_data=False):
     })
     response.raise_for_status()
     token = response.json()
+
+    if not only_new_data:
+        # Disable foreign key constraint checking because deleting the old data
+        # will temporarily break referential integrity until it is re-imported.
+        def disable_foreign_keys(sender, connection, **kwargs):
+            if connection.vendor == 'sqlite':
+                cursor = connection.cursor()
+                cursor.execute('PRAGMA foreign_keys = OFF;')
+        connection_created.connect(disable_foreign_keys)
+        
+        # Move EC5 media to backup in preparation for deletion
+        # when the transaction succeeds.
+        ec5_media_path = os.path.join(settings.MEDIA_ROOT, 'ec5')
+        if os.path.exists(ec5_media_path):
+            shutil.move(ec5_media_path, os.path.join(settings.MEDIA_ROOT, 'ec5backup'))
+        # Delete all previously imported data
+        root_model.objects.all().delete()
+
     objects_created = 0
     for model_name, model in sorted_model_items:
         params  = {}
@@ -148,7 +167,6 @@ def import_from_epicollect(ec5_models, only_new_data=False):
             EntityKeywords(content_object=model_instance, keywords=keywords).save()
 
     # Create group for each Country
-    from django.contrib.auth.models import Group
     for site in ec5_models.SiteData.objects.all():
         if site.country:
             new_group, created = Group.objects.get_or_create(name="View " + site.country)

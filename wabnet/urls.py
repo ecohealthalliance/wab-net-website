@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from .views import (
-    site_table, site_view, attach_data,
+    site_table, site_view, attach_data, about,
     splash, download_all_data, bat_table, bat_view)
 from .run_import import reimport_all_data, sync_new_data
 from . import settings
@@ -24,6 +24,7 @@ from . import settings
 urlpatterns = [
     path('', splash),
     path('admin/', admin.site.urls),
+    path('about/', about, name='about'),
     path('sites/', site_table, name='sites'),
     path('sites/<site_id>', site_view, name='sites'),
     path('bats/<bat_id>/attach', attach_data, name='attach_data'),

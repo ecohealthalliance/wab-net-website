@@ -3,7 +3,36 @@
 
 {% block title %}WAB-Net{% endblock %}
 
+{% block head_additions %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css"
+  integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
+  crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"
+  integrity="sha512-QVftwZFqvtRNi0ZyCtsznlKSWOStnDORoefr1enyq5mVL4tmKB3S/EnC3rRJcxCPavG10IcrVGSmPh6Qw5lwrg=="
+  crossorigin=""></script>
+{% endblock %}
+
 {% block content %}
+    <div id="leafletmap"></div>
+    <script>
+    var locations = {{locationsJson | safe}};
+    var myMap = L.map('leafletmap').setView([40.0, 20.0], 4);
+	L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+	}).addTo(myMap);
+	locations.forEach(function(location){
+	    L.circleMarker(location.coords, {
+            fillColor: location.accessible ? '#00AA11' : '#AA1100',
+            weight: 0,
+            color: '#000',
+            fillOpacity: 1.0
+        }).bindPopup(`<a href="/sites/${location.id}">${location.title}, ${location.country}</a>`).addTo(myMap);
+	});
+    </script>
+{% endblock %}
+
+
+{% block extra %}
     <img class="logo" src="{% static "logo.png" %}" alt="wabnet">
     <p>
         Despite growing recognition that bats are important hosts of zoonotic pathogens,

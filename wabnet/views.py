@@ -10,6 +10,7 @@ import django_tables2
 from .models import SiteData, BatData, SecondaryData, TrappingEvent
 from ec5_tools.entity_keywords_model import EntityKeywords
 from .tables import SiteTable, BatTable, SecondaryDataTable
+import json
 
 import inspect
 from . import ec5_models
@@ -40,7 +41,28 @@ class TrappingEventForm(forms.ModelForm):
 
 
 def splash(request):
-    return render(request, 'splash.html')
+    from django.core import serializers
+    all_countries = False
+    user_viewable_countries = set([
+        group.name.replace('View ', '') for group in request.user.groups.all()])
+    if 'all countries' in user_viewable_countries:
+        all_countries = True
+    sites = []
+    for site_data in SiteData.objects.all():
+        coords = json.loads(str(site_data.x_4_Site_location_GPS_x).replace("'", '"'))
+        sites.append({
+            'id': site_data.uuid,
+            'country': site_data.country,
+            'title': site_data.title,
+            'coords': [coords['latitude'], coords['longitude']],
+            'accessible': all_countries or site_data.country in user_viewable_countries,
+        })
+    return render(request, 'splash.html', {
+        'locationsJson': json.dumps(sites)
+    })
+
+def about(request):
+    return render(request, 'about.html')
 
 @login_required
 def site_table(request):

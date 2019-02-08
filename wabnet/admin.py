@@ -1,8 +1,12 @@
 from django.contrib import admin
-from .models import SecondaryData
+from .models import SecondaryData, EC5Imports
 
 @admin.register(SecondaryData)
 class SecondaryDataAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(EC5Imports)
+class EC5ImportsAdmin(admin.ModelAdmin):
     pass
 
 admin.autodiscover()

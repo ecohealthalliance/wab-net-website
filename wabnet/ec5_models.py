@@ -158,7 +158,7 @@ class BatData(models.Model):
     x_108_OTHER_samples_co_x = models.TextField(verbose_name='OTHER samples collected')
     x_109_Acoustic_recordi_x = models.TextField(verbose_name='Acoustic recordings taken?')
     x_110_OTHER_samples_co_x = models.TextField(verbose_name='OTHER samples collected on included on the list')
-    x_120_Necropsy_perform_x = models.TextField(verbose_name='Necropsy performed?')
+    x_120_Necropsy_or_spec_x = models.TextField(verbose_name='Necropsy or specimen voucher performed?')
     x_122_Date_necropsy_pe_x = models.TextField(verbose_name='Date necropsy performed')
     x_123_Person_performin_x = models.TextField(verbose_name='Person performing the necropsy')
     x_124_Samples_collecte_x = models.TextField(verbose_name='Samples collected during necropsy (store in RNAlater)')

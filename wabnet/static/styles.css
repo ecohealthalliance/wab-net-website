@@ -37,3 +37,15 @@
 .attach-data {
     color: white;
 }
+.navbar-brand {
+    background: url("/static/logo.png");
+    text-indent: -9999px;
+    background-size: 100px;
+    width: 100px;
+    height: 32px;
+    margin-top: 8px;
+    margin-left: 0 !important;
+}
+#leafletmap {
+    height: 500px;
+}
