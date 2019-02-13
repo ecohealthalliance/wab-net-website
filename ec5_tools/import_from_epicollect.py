@@ -16,6 +16,17 @@ import inspect
 from django.contrib.auth.models import Group
 from django.db import transaction
 from django.db.backends.signals import connection_created
+import time
+
+SECONDS_PER_REQUEST = 2
+last_request_time = datetime.datetime.now()
+def throttled_request_get(*args, **kwargs):
+    global last_request_time
+    seconds_since_last_request = (datetime.datetime.now() - last_request_time).total_seconds()
+    if seconds_since_last_request < SECONDS_PER_REQUEST:
+        time.sleep(SECONDS_PER_REQUEST - seconds_since_last_request)
+    last_request_time = datetime.datetime.now()
+    return requests.get(*args, **kwargs)
 
 def import_from_epicollect(ec5_models, only_new_data=False):
     # Rolling back the database does not restore the EC5 media directory,
@@ -97,7 +108,7 @@ def import_from_epicollect_transaction(ec5_models, only_new_data):
         all_entries = []
         while page <= total_pages:
             params['page'] = page
-            response = requests.get('https://five.epicollect.net/api/export/entries/' + settings.EC5_PROJECT_NAME,
+            response = throttled_request_get('https://five.epicollect.net/api/export/entries/' + settings.EC5_PROJECT_NAME,
                 params=params,
                 headers={
                     'Authorization': 'Bearer ' + token['access_token']
@@ -127,7 +138,7 @@ def import_from_epicollect_transaction(ec5_models, only_new_data):
                                 'format': 'audio',
                                 'name': value
                             }
-                        response = requests.get('https://five.epicollect.net/api/export/media/' + settings.EC5_PROJECT_NAME,
+                        response = throttled_request_get('https://five.epicollect.net/api/export/media/' + settings.EC5_PROJECT_NAME,
                             params=params,
                             headers={
                                 'Authorization': 'Bearer ' + token['access_token']
