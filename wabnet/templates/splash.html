@@ -13,40 +13,37 @@
 {% endblock %}
 
 {% block content %}
-    <div id="leafletmap"></div>
+    <div class="section">
+        <h4 class="title-text">Study sites</h4>
+        <span class="caption">Sites you have permission to view are shown in green.</span>
+        <div id="leafletmap"></div>
+    </div>
+    {% for species, samples in samples_by_species.items %}
+        <div class="statistic">
+            <div class="species">{{ species }}</div>
+            <div class="samples">{{ samples }} samples</div>
+        </div>
+    {% endfor %}
     <script>
-    var locations = {{locationsJson | safe}};
+    var locations = {{locations_json | safe}};
     var myMap = L.map('leafletmap').setView([40.0, 20.0], 4);
 	L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        styleId: 22677
 	}).addTo(myMap);
+	
+// 	L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+//       key: '1234'
+//       layerName: 'OpenStreetMap'
+//       styleId: 22677)
+	
 	locations.forEach(function(location){
 	    L.circleMarker(location.coords, {
             fillColor: location.accessible ? '#00AA11' : '#AA1100',
-            weight: 0,
-            color: '#000',
+            weight: 1,
+            color: '#FFF',
             fillOpacity: 1.0
         }).bindPopup(`<a href="/sites/${location.id}">${location.title}, ${location.country}</a>`).addTo(myMap);
 	});
     </script>
-{% endblock %}
-
-
-{% block extra %}
-    <img class="logo" src="{% static "logo.png" %}" alt="wabnet">
-    <p>
-        Despite growing recognition that bats are important hosts of zoonotic pathogens,
-        there remains limited scientific knowledge of the distribution and ecology of bats,
-        their pathogen diversity,
-        and potential interfaces for transmission to humans and other species in Western Asia –
-        an area encompassing over 20 countries in the Middle East and Near East.
-        The Western Asia Bat Research Network (WAB-Net)
-        represents the first coordinated research effort to understand the distribution
-        and diversity of bats and their associated viruses, and,
-        subsequently the risk of bat-borne disease emergence in Western Asia.
-        The integrated approach of WAB-Net embodies a coordinated strategy
-        to advance scientific knowledge around transboundary zoonotic disease emergence risk
-        in Western Asia to inform early detection, diagnosis, and response.
-    </p>
-    <p><a href="mailto:wabnet@ecohealthalliance.org">wabnet@ecohealthalliance.org</p>
 {% endblock %}

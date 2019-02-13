@@ -149,3 +149,5 @@ EMAIL_HOST_USER = os.environ.get('SMTP_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('SMTP_PASSWORD')
 
 DEFAULT_FROM_EMAIL = 'wabnet@eha.io'
+
+DJANGO_TABLES2_TEMPLATE = 'table.html'

@@ -14,13 +14,35 @@
     width: 800px;
 }
 .table-container {
-    max-width: 800px;
+    clear: both;
+}
+.table-container .table {
+    width: 800px;
     overflow: auto;
     box-sizing: content-box;
-    display: inline-block;
+    display: block;
+    max-height: 700px;
+    table-layout: fixed;
 }
 .table th {
-    min-width: 120px;
+    min-width: 140px;
+}
+.table td {
+    position: relative;
+    height: 50px;
+}
+.table .cell {
+    max-width: 140px;
+    overflow: hidden;
+    word-break: break-word;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.table .cell:hover {
+    position: absolute;
+    background: white;
+    z-index: 100;
+    white-space: normal;
 }
 .attach-data {
     float: right;
@@ -48,4 +70,31 @@
 }
 #leafletmap {
     height: 500px;
+}
+.section, .statistic {
+    margin-top: 1em;
+    border: 1px solid #1963b6;
+    border-radius: 3px;
+}
+.statistic {
+    display: inline-block;
+    width: 189px;
+    padding: 4px;
+    margin-top: 1em;
+    margin-right: 8px;
+    height: 100px;
+    text-align: center;
+    font-size: 1.1em;
+}
+.species {
+    font-weight: bold;
+    height: 3em;
+    padding: 5px;
+}
+.title-text {
+    margin: 1em;
+    display: inline-block;
+}
+.caption {
+    margin: 1em;
 }

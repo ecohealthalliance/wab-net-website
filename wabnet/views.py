@@ -24,6 +24,18 @@ bat_family_fields = [field
     for field in BatData._meta.get_fields()
     if isinstance(field, models.TextField) and field.verbose_name.startswith("Family:")]
 
+def get_bat_species(bat_data):
+    bat_species = None
+    bat_family = None
+    for field in bat_data._meta.get_fields():
+        if field.name.endswith('_Bat_family_x'):
+            bat_family = getattr(bat_data, field.name)
+    for field in bat_family_fields:
+        if bat_family in field.verbose_name:
+            bat_species = getattr(bat_data, field.name)
+            break
+    return bat_family, bat_species
+
 class SecondaryDataForm(forms.ModelForm):
     class Meta:
         model = SecondaryData
@@ -39,7 +51,7 @@ class TrappingEventForm(forms.ModelForm):
         model = TrappingEvent
         exclude = ['title', 'uuid', 'parent']
 
-
+@login_required(login_url='/about')
 def splash(request):
     from django.core import serializers
     all_countries = False
@@ -57,8 +69,13 @@ def splash(request):
             'coords': [coords['latitude'], coords['longitude']],
             'accessible': all_countries or site_data.country in user_viewable_countries,
         })
+    samples_by_species = {}
+    for bat_data in BatData.objects.all():
+        bat_family, bat_species = get_bat_species(bat_data)
+        samples_by_species[bat_species] = samples_by_species.get(bat_species, 0) + 1
     return render(request, 'splash.html', {
-        'locationsJson': json.dumps(sites)
+        'locations_json': json.dumps(sites),
+        'samples_by_species': samples_by_species
     })
 
 def about(request):
@@ -228,15 +245,7 @@ def bat_view(request, bat_id):
     objects = SecondaryData.objects.filter(parent=bat_id)
     secondary_data_table = SecondaryDataTable(objects)
     RequestConfig(request).configure(secondary_data_table)
-    bat_species = None
-    bat_family = None
-    for field in bat_data._meta.get_fields():
-        if field.name.endswith('_Bat_family_x'):
-            bat_family = getattr(bat_data, field.name)
-    for field in bat_family_fields:
-        if bat_family in field.verbose_name:
-            bat_species = getattr(bat_data, field.name)
-            break
+    bad_family, bat_species = get_bat_species(bat_data)
 
     exclude_fields = ['parent', 'title', 'created_at', 'created_by', 'uuid'] + [f.name for f in bat_family_fields]
     main_data = []

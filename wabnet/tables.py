@@ -6,7 +6,6 @@ from django_tables2.utils import A
 class SiteTable(tables.Table):
     class Meta:
         model = SiteData
-        template_name = 'django_tables2/bootstrap.html'
         fields = ('title', 'country', 'uuid')
 
     uuid = tables.LinkColumn('sites',
@@ -18,7 +17,6 @@ class BatTable(tables.Table):
     name = "Bat Information"
     class Meta:
         model = BatData
-        template_name = 'django_tables2/bootstrap.html'
         exclude = ('uuid', 'parent',)
         sequence = ('title', '...')
 
@@ -29,5 +27,4 @@ class SecondaryDataTable(tables.Table):
     name = "Secondary Data"
     class Meta:
         model = SecondaryData
-        template_name = 'django_tables2/bootstrap.html'
         exclude = ('id', 'parent',)
