@@ -2,7 +2,7 @@ import datetime
 from django.http import HttpResponse, HttpResponseBadRequest
 from ec5_tools.import_from_epicollect import import_from_epicollect
 from . import ec5_models
-from .models import EC5Imports
+from .models import EpiCollectImport
 
 
 def throttle(min_delay):
@@ -19,7 +19,7 @@ def throttle(min_delay):
 
 @throttle(datetime.timedelta(seconds=60*60))
 def reimport_all_data(request):
-    import_data = EC5Imports(import_type="full")
+    import_data = EpiCollectImport(import_type="full")
     import_data.save()
     import_from_epicollect(ec5_models)
     import_data.success = True
@@ -28,7 +28,7 @@ def reimport_all_data(request):
 
 @throttle(datetime.timedelta(seconds=10*60))
 def sync_new_data(request):
-    import_data = EC5Imports(import_type="sync")
+    import_data = EpiCollectImport(import_type="sync")
     import_data.save()
     import_from_epicollect(ec5_models, only_new_data=True)
     import_data.success = True

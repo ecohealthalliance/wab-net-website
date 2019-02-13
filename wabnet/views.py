@@ -117,7 +117,6 @@ def site_view(request, site_id):
             name = child_model.name
             class Meta:
                 model = child_model
-                template_name = 'django_tables2/bootstrap.html'
                 exclude = ('id', 'uuid', 'parent',)
                 sequence = ('title', '...')
         objects = child_model.objects.filter(parent=site_id)
@@ -208,6 +207,9 @@ def bat_table(request):
             parent__parent__country__in=user_viewable_countries)
     if request.GET.get('q'):
         bats = bats.filter(keywords__keywords__contains=request.GET.get('q'))
+    if request.GET.get('hasRecording') == 'on':
+        recording_parent_ids = ec5_models.x_111_Acoustic_recordi_x.objects.values('parent')
+        bats = bats.filter(uuid__in=recording_parent_ids)
     table = BatTable(bats)
     RequestConfig(request, paginate={'per_page': 20}).configure(table)
     return render(request, 'bat_table.html', {'table': table})

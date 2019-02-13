@@ -8,9 +8,14 @@
     <div>
         <form action="{{ request.path }}" class="navbar-form navbar-left" role="search">
           <div class="form-group">
-            <input type="text" class="form-control" placeholder="Search" name="q" value="{{request.GET.q}}"/>
+            <input type="text" class="form-control" placeholder="Search text" name="q" value="{{request.GET.q}}"/>
           </div>
-          <button type="submit" class="btn btn-default">Search</button>
+          <div class="has-recording checkbox">
+            <label>
+              <input type="checkbox" name="hasRecording" {% if request.GET.hasRecording == 'on' %}checked{% endif %}> Has Recording
+            </label>
+          </div>
+          <button type="submit" class="btn btn-primary">Search</button>
         </form>
     </div>
     {% render_table table %}

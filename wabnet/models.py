@@ -10,7 +10,7 @@ class SecondaryData(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField()
 
-class EC5Imports(models.Model):
+class EpiCollectImport(models.Model):
     date = models.DateTimeField(default=datetime.datetime.now)
     success = models.BooleanField(default=False)
     import_type = models.CharField(max_length=50)

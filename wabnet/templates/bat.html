@@ -31,15 +31,7 @@
             <dd>{{ bat_species }}</dd>
         </dl>
     </div>
-    
-    {% for table in tables %}
-        <div class="model-data panel panel-primary">
-            <div class="panel-heading">{{table.name}}</div>
-            <div class="panel-body">
-                {% render_table table %}
-            </div>
-        </div>
-    {% endfor %}
+
     <div class="model-data panel panel-primary">
         <div class="panel-heading">
             Secondary Data Table
@@ -52,6 +44,15 @@
         </div>
     </div>
 
+    {% for table in tables %}
+        <div class="model-data panel panel-primary">
+            <div class="panel-heading">{{table.name}}</div>
+            <div class="panel-body">
+                {% render_table table %}
+            </div>
+        </div>
+    {% endfor %}
+
     <div class="model-data panel panel-primary">
         <div class="panel-heading">Trapping Event Data</div>
         <dl class="panel-body">
@@ -59,7 +60,15 @@
             <dd><a href="{% url 'sites' bat_data.parent.parent.uuid %}">{{ bat_data.parent.parent.title }}</a></dd>
             {% for field in trapping_event_form %}
                 <dt>{{ field.label_tag }}</dt>
-                <dd>{{ field.value }}</dd>
+                <dd>
+                    {% with field.value as value %}
+                    {% if value.url|length > 0 %}
+                        <a href="{{ value.url }}">{{value.url}}</a>
+                    {% else %}
+                        {{ value }}
+                    {% endif %}
+                    {% endwith %}
+                </dd>
             {% endfor %}
         </dl>
     </div>

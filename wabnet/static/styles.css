@@ -43,6 +43,10 @@
     background: white;
     z-index: 100;
     white-space: normal;
+    box-shadow: 0px 0px 4px #1e90ff;
+}
+.table-container nav  {
+    text-align: center;
 }
 .attach-data {
     float: right;
@@ -97,4 +101,8 @@
 }
 .caption {
     margin: 1em;
+}
+.has-recording.checkbox {
+    margin-left: 2em;
+    margin-right: 2em;
 }
