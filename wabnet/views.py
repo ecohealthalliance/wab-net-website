@@ -226,14 +226,14 @@ def download_occurrence_data(request):
         coords = json.loads(str(bat_data.parent.parent.x_4_Site_location_GPS_x).replace("'", '"'))
         animal_id = bat_data.x_54_ANIMAL_ID_eg_PK00_x
         rows.append({
-            "basisOfRecord": "LivingSpecimen",
+            "basisOfRecord": "PreservedSpecimen" if bat_data.x_125_Bat_prepared_as_x == "Yes" else "Occurrence",
             "taxonRank": "species",
             "order": "Chiroptera",
             "kingdom": "Animalia",
             # A prefix is added to ensure global uniqueness
             "occurrenceID": 'EHA-WAB-NET-' + animal_id,
-            "scientificName": bat_family + ' ' + bat_species,
-            "eventDate": bat_data.parent.x_35_Date_of_trapping_x,
+            "scientificName": bat_species,
+            "eventDate": datetime.datetime.strptime(bat_data.parent.x_35_Date_of_trapping_x, "%d/%m/%Y").strftime("%B %d, %Y"),
             # Only take country codes from ids that match the standard pattern.
             "countryCode": animal_id[0:2] if re.match(r"\D\D\d+", animal_id) else "",
             "country": bat_data.parent.parent.country,
