@@ -1,4 +1,6 @@
 import datetime
+import json
+import re
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 import django.forms as forms
@@ -10,7 +12,6 @@ import django_tables2
 from .models import SiteData, BatData, SecondaryData, TrappingEvent
 from ec5_tools.entity_keywords_model import EntityKeywords
 from .tables import SiteTable, BatTable, SecondaryDataTable
-import json
 
 import inspect
 from . import ec5_models
@@ -184,6 +185,67 @@ def download_all_data(request):
         table = MyTable(objects)
         response = HttpResponse(content_type='application/octet-stream')
         zipf.writestr(model_name + ".csv", TableExport('csv', table).export())
+    # fix for Linux zip files read in Windows
+    for file in zipf.filelist:
+        file.create_system = 0
+    zipf.close()
+    response = HttpResponse()
+    response['Content-Disposition'] = 'attachment; filename=export.zip'
+    zip_buffer.seek(0)
+    response.write(zip_buffer.read())
+    return response
+
+class OccurrenceTable(django_tables2.Table):
+    occurrenceID = django_tables2.Column()
+    basisOfRecord = django_tables2.Column()
+    scientificName = django_tables2.Column()
+    eventDate = django_tables2.Column()
+    countryCode = django_tables2.Column()
+    country = django_tables2.Column()
+    taxonRank = django_tables2.Column()
+    order = django_tables2.Column()
+    kingdom = django_tables2.Column()
+    decimalLatitude = django_tables2.Column()
+    decimalLongitude = django_tables2.Column()
+    geodeticDatum = django_tables2.Column()
+
+@login_required
+def download_occurrence_data(request):
+    user_viewable_countries = [
+        group.name.replace('View ', '') for group in request.user.groups.all()]
+    if len(user_viewable_countries) == 0:
+        bats = BatData.objects.none()
+    if 'all countries' in user_viewable_countries:
+        bats = BatData.objects.all()
+    else:
+        bats = BatData.objects.filter(
+            parent__parent__country__in=user_viewable_countries)
+    rows = []
+    for bat_data in bats:
+        bat_family, bat_species = get_bat_species(bat_data)
+        coords = json.loads(str(bat_data.parent.parent.x_4_Site_location_GPS_x).replace("'", '"'))
+        animal_id = bat_data.x_54_ANIMAL_ID_eg_PK00_x
+        rows.append({
+            "basisOfRecord": "LivingSpecimen",
+            "taxonRank": "species",
+            "order": "Chiroptera",
+            "kingdom": "Animalia",
+            # A prefix is added to ensure global uniqueness
+            "occurrenceID": 'EHA-WAB-NET-' + animal_id,
+            "scientificName": bat_family + ' ' + bat_species,
+            "eventDate": bat_data.parent.x_35_Date_of_trapping_x,
+            # Only take country codes from ids that match the standard pattern.
+            "countryCode": animal_id[0:2] if re.match(r"\D\D\d+", animal_id) else "",
+            "country": bat_data.parent.parent.country,
+            "decimalLatitude": coords['latitude'],
+            "decimalLongitude": coords['longitude'],
+            "geodeticDatum": "WGS 84"
+        })
+    zip_buffer = BytesIO()
+    zipf = zipfile.ZipFile(zip_buffer, 'a')
+    table = OccurrenceTable(rows)
+    response = HttpResponse(content_type='application/octet-stream')
+    zipf.writestr("occurrences.csv", TableExport('csv', table).export())
     # fix for Linux zip files read in Windows
     for file in zipf.filelist:
         file.create_system = 0

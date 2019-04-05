@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import path, include
 from .views import (
     site_table, site_view, attach_data, about,
-    splash, download_all_data, bat_table, bat_view)
+    splash, download_all_data, download_occurrence_data, bat_table, bat_view)
 from .run_import import reimport_all_data, sync_new_data
 from . import settings
 
@@ -32,6 +32,7 @@ urlpatterns = [
     path('bats/<bat_id>', bat_view, name='bats'),
     path('accounts/', include('allauth.urls')),
     path('download', download_all_data, name='download_all_data'),
+    path('download_occurrence_data', download_occurrence_data, name='download_occurrence_data'),
     path('reimport', reimport_all_data),
     path('sync', sync_new_data),
 ]
