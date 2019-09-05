@@ -11,7 +11,7 @@ pip install -r requirements.pip
 python manage.py makemigrations wabnet
 python manage.py migrate
 python manage.py createsuperuser
-python manage.py import_from_epicollect
+python manage.py import_from_epicollect wabnet.ec5_models
 python manage.py runserver
 ```
 
@@ -23,6 +23,8 @@ The models can be automatically regenerated using the following command:
 python manage.py generate_models wabnet
 ```
 Updating the models will require migrating the old data from the old models into the new models. You can create a migration using the following command.
+This will prompt you to confirm the fields will be renamed correctly (e.g. 11_bat_weight can be renamed to 13_bat_weight if that's what EC5 started calling it)
+and it will ask for default values for new fields. You can usually enter an empty string ("") for the default.
 ```
 python manage.py makemigrations wabnet
 ```

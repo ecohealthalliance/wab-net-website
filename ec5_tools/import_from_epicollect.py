@@ -40,7 +40,8 @@ def import_from_epicollect(ec5_models, only_new_data=False):
             shutil.move(ec5_media_backup_path, ec5_media_path)
         raise
     if not only_new_data:
-        shutil.rmtree(ec5_media_backup_path)
+        if os.path.exists(ec5_media_backup_path):
+            shutil.rmtree(ec5_media_backup_path)
 
 @transaction.atomic
 def import_from_epicollect_transaction(ec5_models, only_new_data):
