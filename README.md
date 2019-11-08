@@ -6,6 +6,8 @@ It was built using the Django 2.0 framework.
 
 The following commands will install the dependencies, download the EC5 data, and start the app running on your local machine.
 
+*Note about running locally:* Running the site locally requires environment variables which are set in the site's [`docker-compose.yml`](https://github.com/ecohealthalliance/infrastructure/blob/master/ansible/main/roles/deploy-wabnet/compose/docker-compose.yml) file in the [infrastructure](https://github.com/ecohealthalliance/infrastructure/) repo. Some of the variables are secret, and are encrypted in my_secure.yml in the same repo (the Ansible vault).
+
 ```bash
 pip install -r requirements.pip
 python manage.py makemigrations wabnet

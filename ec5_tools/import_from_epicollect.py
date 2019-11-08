@@ -18,7 +18,7 @@ from django.db import transaction
 from django.db.backends.signals import connection_created
 import time
 
-SECONDS_PER_REQUEST = 2
+SECONDS_PER_REQUEST = 1
 last_request_time = datetime.datetime.now()
 def throttled_request_get(*args, **kwargs):
     global last_request_time
@@ -43,6 +43,22 @@ def import_from_epicollect(ec5_models, only_new_data=False):
         if os.path.exists(ec5_media_backup_path):
             shutil.rmtree(ec5_media_backup_path)
 
+def refresh_ec5_token(ec5_client_id, ec5_secret_key, current_token = None):
+    # If we have no token, gives us a new token.
+    # If we have a token that's near expiration, give us a new one.
+    # Otherwise, keep the same token.
+    if current_token is not None and current_token["expiration_time"] > datetime.datetime.now():
+            return current_token
+    response = requests.post('https://five.epicollect.net/api/oauth/token', data={
+      'grant_type': 'client_credentials',
+      'client_id': ec5_client_id,
+      'client_secret': ec5_secret_key
+    })
+    response.raise_for_status()
+    token = response.json()
+    token["expiration_time"] = datetime.datetime.now() + datetime.timedelta(seconds = token["expires_in"] - 100)
+    return(token)
+
 @transaction.atomic
 def import_from_epicollect_transaction(ec5_models, only_new_data):
     ec5_model_dict = {}
@@ -64,13 +80,7 @@ def import_from_epicollect_transaction(ec5_models, only_new_data):
                 sorted_model_items.append(model_item)
                 unresolved_models.remove(model_item)
 
-    response = requests.post('https://five.epicollect.net/api/oauth/token', data={
-      'grant_type': 'client_credentials',
-      'client_id': settings.EC5_CLIENT_ID,
-      'client_secret': settings.EC5_SECRET_KEY
-    })
-    response.raise_for_status()
-    token = response.json()
+    token = refresh_ec5_token(settings.EC5_CLIENT_ID, settings.EC5_SECRET_KEY)
 
     if not only_new_data:
         # Disable foreign key constraint checking because deleting the old data
@@ -109,6 +119,7 @@ def import_from_epicollect_transaction(ec5_models, only_new_data):
         all_entries = []
         while page <= total_pages:
             params['page'] = page
+            token = refresh_ec5_token(settings.EC5_CLIENT_ID, settings.EC5_SECRET_KEY, token)
             response = throttled_request_get('https://five.epicollect.net/api/export/entries/' + settings.EC5_PROJECT_NAME,
                 params=params,
                 headers={
@@ -139,6 +150,7 @@ def import_from_epicollect_transaction(ec5_models, only_new_data):
                                 'format': 'audio',
                                 'name': value
                             }
+                        token = refresh_ec5_token(settings.EC5_CLIENT_ID, settings.EC5_SECRET_KEY, token)
                         response = throttled_request_get('https://five.epicollect.net/api/export/media/' + settings.EC5_PROJECT_NAME,
                             params=params,
                             headers={
