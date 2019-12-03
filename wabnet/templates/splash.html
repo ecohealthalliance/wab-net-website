@@ -26,7 +26,7 @@
     {% endfor %}
     <script>
     var locations = {{locations_json | safe}};
-    var myMap = L.map('leafletmap').setView([33, 53], 4);
+    var myMap = L.map('leafletmap').setView([40.0, 20.0], 4);
 	L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         styleId: 22677
