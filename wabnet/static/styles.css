@@ -80,6 +80,9 @@
     border: 1px solid #1963b6;
     border-radius: 3px;
 }
+.section img {
+    width: 100%;
+}
 .statistic {
     display: inline-block;
     width: 189px;
