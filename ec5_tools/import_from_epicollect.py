@@ -18,7 +18,9 @@ from django.db import transaction
 from django.db.backends.signals import connection_created
 import time
 
-SECONDS_PER_REQUEST = 1
+#SECONDS_PER_REQUEST = 1
+SECONDS_PER_REQUEST = 2
+
 last_request_time = datetime.datetime.now()
 def throttled_request_get(*args, **kwargs):
     global last_request_time
@@ -90,7 +92,7 @@ def import_from_epicollect_transaction(ec5_models, only_new_data):
                 cursor = connection.cursor()
                 cursor.execute('PRAGMA foreign_keys = OFF;')
         connection_created.connect(disable_foreign_keys)
-        
+
         # Move EC5 media to backup in preparation for deletion
         # when the transaction succeeds.
         ec5_media_path = os.path.join(settings.MEDIA_ROOT, 'ec5')

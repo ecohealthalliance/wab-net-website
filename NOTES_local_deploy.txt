@@ -1,0 +1,31 @@
+Local/stage install notes:
+
+1) create local environment vars file and source (don't include in git commit)
+1a) You'll need to change directories for shared, media and source to be off .
+
+2) make virtual environment for dependencies (don't include in git commit)
+2a) python -m venv env_wab-net-website
+2b) source env_wab-net-website/bin/activate
+2c) when done: deactivate
+
+3) Follow setup readme
+3a) pip install -r requirements.pip
+3b) python manage.py makemigrations wabnet
+3c) python manage.py migrate
+3d) python manage.py cratesuperuser
+3e) change wait time so we don't hit rate limit
+    SECONDS_PER_REQUEST = 2 IN ec5_tools/import_from_epicollect.py
+3f) python manage.py import_from_epicollect wabnet.ec5_models
+    Get this error: requests.exceptions.HTTPError: 404 Client Error: Not Found for url: https://five.epicollect.net/api/export/media/western-asia-bat-research?type=photo&format=entry_original&name=5e800b00-e086-11e9-b7c1-ddec692ca674_1569691897.jpg
+    so skip running server and go to model regeneration
+3g) regenerate models from survey with:
+    python manage.py generate_models wabnet
+3h) python manage.py makemigrations wabnet
+3i) python manage.py migrate
+3j) python manage.py import_from_epicollect wabnet.ec5_models
+
+4) Stage update
+4a) enable css by changing 'DEBUG = True' in wabnet/setting.spy (don't commit this change. make it again on staging server.)
+4b) python manage.py runserver <port>
+4c) give bat data access to superuser just created
+4d) make test_user and give access to all data
