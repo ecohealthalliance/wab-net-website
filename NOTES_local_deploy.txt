@@ -1,4 +1,4 @@
-Local/stage install notes:
+Local/stage install/deploy notes:
 
 1) create local environment vars file and source (don't include in git commit)
 1a) You'll need to change directories for shared, media and static to be off .
@@ -16,13 +16,13 @@ Local/stage install notes:
 3e) change wait time so we don't hit rate limit
     SECONDS_PER_REQUEST = 2 IN ec5_tools/import_from_epicollect.py
 3f) python manage.py import_from_epicollect wabnet.ec5_models
-    Get this error: requests.exceptions.HTTPError: 404 Client Error: Not Found for url: https://five.epicollect.net/api/export/media/western-asia-bat-research?type=photo&format=entry_original&name=5e800b00-e086-11e9-b7c1-ddec692ca674_1569691897.jpg
-    so skip running server and go to model regeneration
+    I get this error: requests.exceptions.HTTPError: 404 Client Error: Not Found for url: https://five.epicollect.net/api/export/media/western-asia-bat-research?type=photo&format=entry_original&name=5e800b00-e086-11e9-b7c1-ddec692ca674_1569691897.jpg
+    I assume this if from survey modifications, so skip running server and go to model regeneration
 3g) regenerate models from survey with:
     python manage.py generate_models wabnet
 3h) python manage.py makemigrations wabnet
 3i) python manage.py migrate
-3j) python manage.py import_from_epicollect wabnet.ec5_models
+3j) python manage.py import_from_epicollect wabnet.ec5_models (should now run with no errors)
 
 4) check local install
 4a) enable css by changing 'DEBUG = True' in wabnet/settings.py (don't commit this change. make it again on staging server.)
