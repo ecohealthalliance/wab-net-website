@@ -1,7 +1,7 @@
 Local/stage install notes:
 
 1) create local environment vars file and source (don't include in git commit)
-1a) You'll need to change directories for shared, media and source to be off .
+1a) You'll need to change directories for shared, media and static to be off .
 
 2) make virtual environment for dependencies (don't include in git commit)
 2a) python -m venv env_wab-net-website
