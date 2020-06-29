@@ -8,7 +8,7 @@ Local/stage install notes:
 2b) source env_wab-net-website/bin/activate
 2c) when done: deactivate
 
-3) Follow setup readme
+3) Follow setup readme (on kirby python below replaced with python3)
 3a) pip install -r requirements.pip
 3b) python manage.py makemigrations wabnet
 3c) python manage.py migrate
@@ -24,8 +24,18 @@ Local/stage install notes:
 3i) python manage.py migrate
 3j) python manage.py import_from_epicollect wabnet.ec5_models
 
-4) Stage update
-4a) enable css by changing 'DEBUG = True' in wabnet/setting.spy (don't commit this change. make it again on staging server.)
+4) check local install
+4a) enable css by changing 'DEBUG = True' in wabnet/settings.py (don't commit this change. make it again on staging server.)
 4b) python manage.py runserver <port>
 4c) give bat data access to superuser just created
-4d) make test_user and give access to all data
+
+5) stage install on kirby
+5a) clone repo from GitHub
+5b) change to test branch
+5c) follow steps 1, 2 & 3 above (some already done in committed code)
+5d) do step 4 above, but also make a new test_user and give it access to all data
+5e) request comments from WAB-NET team
+
+If it passes tests from WAB-NET team:
+1) merge test branch with master
+2) deploy with Ansible playbook
