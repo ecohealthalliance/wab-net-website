@@ -37,5 +37,5 @@ Local/stage install/deploy notes:
 5e) request comments from WAB-NET team
 
 If it passes tests from WAB-NET team:
-1) merge test branch with master
-2) deploy with Ansible playbook
+6) merge test branch with master
+7) deploy with Ansible playbook
