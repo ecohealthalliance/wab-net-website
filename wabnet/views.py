@@ -12,9 +12,17 @@ import django_tables2
 from .models import SiteData, BatData, SecondaryData, TrappingEvent
 from ec5_tools.entity_keywords_model import EntityKeywords
 from .tables import SiteTable, BatTable, SecondaryDataTable
-
 import inspect
 from . import ec5_models
+import logging
+
+logger = logging.getLogger(__name__)
+hdlr = logging.FileHandler('./log.txt')
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+hdlr.setFormatter(formatter)
+logger.addHandler(hdlr)
+logger.setLevel(logging.INFO)
+
 child_models = {}
 for name, obj in inspect.getmembers(ec5_models):
     if inspect.isclass(obj) and issubclass(obj, models.Model):
@@ -209,6 +217,38 @@ class OccurrenceTable(django_tables2.Table):
     decimalLongitude = django_tables2.Column()
     geodeticDatum = django_tables2.Column()
 
+def get_bat_attr(bat_data, attr_base_name):
+
+    valid_attr_list = ['Site_location_GPS', 'ANIMAL_ID_eg_PK00',
+                       'Bat_prepared_as', 'Date_of_trapping']
+    if attr_base_name not in valid_attr_list:
+        raise ValueError('views.py: get_bat_attr(): {} not supported'.format(attr_base_name))
+
+    if attr_base_name == 'ANIMAL_ID_eg_PK00' or attr_base_name == 'Bat_prepared_as':
+        attr_source = bat_data
+    elif attr_base_name == 'Date_of_trapping':
+        attr_source = bat_data.parent
+    elif attr_base_name == 'Site_location_GPS':
+        attr_source = bat_data.parent.parent
+    else:
+        raise ValueError('views.py: get_bat_attr(): invalid attr_base_name')
+
+    # find the correct attribute name for list elements
+    found_targ_attr = False
+    targ_attr = ''
+    for curr_attr in dir(attr_source):
+        if attr_base_name in curr_attr:
+            if found_targ_attr:
+                raise ValueError('views.py: get_bat_attr(): found duplicate base attributes!')
+            else:
+                found_targ_attr = True
+                targ_attr = curr_attr
+
+    if not found_targ_attr:
+        raise ValueError('views.py: get_bat_attr(): base_attr_name not found')
+
+    return getattr(attr_source, targ_attr)
+
 @login_required
 def download_occurrence_data(request):
     user_viewable_countries = [
@@ -223,17 +263,17 @@ def download_occurrence_data(request):
     rows = []
     for bat_data in bats:
         bat_family, bat_species = get_bat_species(bat_data)
-        coords = json.loads(str(bat_data.parent.parent.x_4_Site_location_GPS_x).replace("'", '"'))
-        animal_id = bat_data.x_54_ANIMAL_ID_eg_PK00_x
+        coords = json.loads(str(get_bat_attr(bat_data, 'Site_location_GPS')).replace("'", '"'))
+        animal_id = get_bat_attr(bat_data, 'ANIMAL_ID_eg_PK00')
         rows.append({
-            "basisOfRecord": "PreservedSpecimen" if bat_data.x_125_Bat_prepared_as_x == "Yes" else "Occurrence",
+            "basisOfRecord": "PreservedSpecimen" if get_bat_attr(bat_data, 'Bat_prepared_as') == "Yes" else "Occurrence",
             "taxonRank": "species",
             "order": "Chiroptera",
             "kingdom": "Animalia",
             # A prefix is added to ensure global uniqueness
             "occurrenceID": 'EHA-WAB-NET-' + animal_id,
             "scientificName": bat_species,
-            "eventDate": datetime.datetime.strptime(bat_data.parent.x_35_Date_of_trapping_x, "%d/%m/%Y").strftime("%B %d, %Y"),
+            "eventDate": datetime.datetime.strptime(get_bat_attr(bat_data, 'Date_of_trapping'), "%d/%m/%Y").strftime("%B %d, %Y"),
             # Only take country codes from ids that match the standard pattern.
             "countryCode": animal_id[0:2] if re.match(r"\D\D\d+", animal_id) else "",
             "country": bat_data.parent.parent.country,
@@ -258,6 +298,7 @@ def download_occurrence_data(request):
 
 @login_required
 def bat_table(request):
+    logger.info('bat_table: entering')
     user_viewable_countries = [
         group.name.replace('View ', '') for group in request.user.groups.all()]
     if len(user_viewable_countries) == 0:

@@ -27,6 +27,8 @@ Local/stage install/deploy notes:
 4) check local install
 4a) enable css by changing 'DEBUG = True' in wabnet/settings.py (don't commit this change. make it again on staging server.)
 4b) python manage.py runserver <port>
+    NOTE: when running on kirby use: nohup python manage.py runserver 10.0.0.41:22051 &> log.txt &
+          this will keep server up after logging out and send stderr/out to log.txt
 4c) give bat data access to superuser just created
 
 5) stage install on kirby
