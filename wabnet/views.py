@@ -296,6 +296,19 @@ def download_occurrence_data(request):
     response.write(zip_buffer.read())
     return response
 
+def get_recording_parent_ids():
+    targ_name = ''
+    for name, obj in inspect.getmembers(ec5_models):
+        if '_Acoustic_recordi_x' in name:
+             targ_name = name
+
+    if targ_name ==  '':
+        raise ValueError('Acoustic Recording label not found in ec5_models')
+
+    parent_ids = getattr(ec5_models, targ_name).objects.values('parent')
+
+    return parent_ids
+
 @login_required
 def bat_table(request):
     logger.info('bat_table: entering')
@@ -311,7 +324,7 @@ def bat_table(request):
     if request.GET.get('q'):
         bats = bats.filter(keywords__keywords__contains=request.GET.get('q'))
     if request.GET.get('hasRecording') == 'on':
-        recording_parent_ids = ec5_models.x_111_Acoustic_recordi_x.objects.values('parent')
+        recording_parent_ids = get_recording_parent_ids()
         bats = bats.filter(uuid__in=recording_parent_ids)
     table = BatTable(bats)
     RequestConfig(request, paginate={'per_page': 20}).configure(table)
