@@ -14,14 +14,6 @@ from ec5_tools.entity_keywords_model import EntityKeywords
 from .tables import SiteTable, BatTable, SecondaryDataTable
 import inspect
 from . import ec5_models
-import logging
-
-logger = logging.getLogger(__name__)
-hdlr = logging.FileHandler('./log.txt')
-formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-hdlr.setFormatter(formatter)
-logger.addHandler(hdlr)
-logger.setLevel(logging.INFO)
 
 child_models = {}
 for name, obj in inspect.getmembers(ec5_models):
@@ -60,6 +52,32 @@ class TrappingEventForm(forms.ModelForm):
         model = TrappingEvent
         exclude = ['title', 'uuid', 'parent']
 
+
+def get_site_attr(site_data, attr_base_name):
+
+    valid_attr_list = ['Site_location_GPS']
+
+    if attr_base_name not in valid_attr_list:
+        raise ValueError('views.py: get_bat_attr(): {} not supported'.format(attr_base_name))
+
+    # find the correct attribute name for list elements
+    found_targ_attr = False
+    targ_attr = ''
+    attr_source = site_data
+    for curr_attr in dir(attr_source):
+        if attr_base_name in curr_attr:
+            if found_targ_attr:
+                raise ValueError('views.py: get_site_attr(): found duplicate base attributes!')
+            else:
+                found_targ_attr = True
+                targ_attr = curr_attr
+
+    if not found_targ_attr:
+        raise ValueError('views.py: get_bat_attr(): base_attr_name not found')
+
+    return getattr(attr_source, targ_attr)
+
+
 @login_required(login_url='/about')
 def splash(request):
     from django.core import serializers
@@ -70,7 +88,7 @@ def splash(request):
         all_countries = True
     sites = []
     for site_data in SiteData.objects.all():
-        coords = json.loads(str(site_data.x_4_Site_location_GPS_x).replace("'", '"'))
+        coords = json.loads(str(get_site_attr(site_data, 'Site_location_GPS')).replace("'", '"'))
         sites.append({
             'id': site_data.uuid,
             'country': site_data.country,
@@ -311,7 +329,6 @@ def get_recording_parent_ids():
 
 @login_required
 def bat_table(request):
-    logger.info('bat_table: entering')
     user_viewable_countries = [
         group.name.replace('View ', '') for group in request.user.groups.all()]
     if len(user_viewable_countries) == 0:
