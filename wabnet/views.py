@@ -198,16 +198,10 @@ def download_all_data(request):
         elif 'all countries' in user_viewable_countries:
             objects = child_model.objects.all()
         else:
-            tmp_model = child_model
-            ancestors = 0
-            while hasattr(tmp_model, 'parent'):
-                tmp_model = tmp_model.parent.field.related_model
-                ancestors += 1
-            # Build a query that requires the root ancestor to have a country
-            # property matching matching one of the user's viewalbe countries.
-            objects = child_model.objects.filter(**{
-                ('parent__' * ancestors) + "__country__in": user_viewable_countries
-            })
+            objects = []
+            for obj in child_model.objects.all():
+                if obj.get_country() in user_viewable_countries:
+                    objects.append(obj)
         table = MyTable(objects)
         response = HttpResponse(content_type='application/octet-stream')
         zipf.writestr(model_name + ".csv", TableExport('csv', table).export())
