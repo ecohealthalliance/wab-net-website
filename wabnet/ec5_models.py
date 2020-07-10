@@ -136,7 +136,7 @@ class BatData(models.Model):
     x_71_Family_Nycteridae_x = models.TextField(verbose_name='Family: Nycteridae')
     x_72_Family_Pteropodid_x = models.TextField(verbose_name='Family: Pteropodidae')
     x_73_Family_Rhinolophi_x = models.TextField(verbose_name='Family: Rhinolophidae')
-    x_74_Family_Rhinonycte_x = models.TextField(verbose_name='Family Rhinonycteridae')
+    x_74_Family_Rhinonycte_x = models.TextField(verbose_name='Family: Rhinonycteridae')
     x_75_Family_Rhinopomat_x = models.TextField(verbose_name='Family: Rhinopomatidae')
     x_76_Family_Vespertili_x = models.TextField(verbose_name='Family: Vespertilionidae')
     x_77_Specify_Other_bat_x = models.TextField(verbose_name='Specify "Other" bat species')
