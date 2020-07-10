@@ -1,0 +1,43 @@
+Local/stage install/deploy notes:
+
+1) create local environment vars file and source (don't include in git commit)
+1a) You'll need to change directories for shared, media and static to be off .
+
+2) make virtual environment for dependencies (don't include in git commit)
+2a) python -m venv env_wab-net-website
+2b) source env_wab-net-website/bin/activate
+2c) when done: deactivate
+
+3) Follow setup readme (on kirby python below replaced with python3)
+3a) pip install -r requirements.pip
+3b) python manage.py makemigrations wabnet
+3c) python manage.py migrate
+3d) python manage.py cratesuperuser
+3e) change wait time so we don't hit rate limit
+    SECONDS_PER_REQUEST = 2 IN ec5_tools/import_from_epicollect.py
+3f) python manage.py import_from_epicollect wabnet.ec5_models
+    I get this error: requests.exceptions.HTTPError: 404 Client Error: Not Found for url: https://five.epicollect.net/api/export/media/western-asia-bat-research?type=photo&format=entry_original&name=5e800b00-e086-11e9-b7c1-ddec692ca674_1569691897.jpg
+    I assume this if from survey modifications, so skip running server and go to model regeneration
+3g) regenerate models from survey with:
+    python manage.py generate_models wabnet
+3h) python manage.py makemigrations wabnet
+3i) python manage.py migrate
+3j) python manage.py import_from_epicollect wabnet.ec5_models (should now run with no errors)
+
+4) check local install
+4a) enable css by changing 'DEBUG = True' in wabnet/settings.py (don't commit this change. make it again on staging server.)
+4b) python manage.py runserver <port>
+    NOTE: when running on kirby use: nohup python manage.py runserver 10.0.0.41:22051 &> log.txt &
+          this will keep server up after logging out and send stderr/out to log.txt
+4c) give bat data access to superuser just created
+
+5) stage install on kirby
+5a) clone repo from GitHub
+5b) change to test branch
+5c) follow steps 1, 2 & 3 above (some already done in committed code)
+5d) do step 4 above, but also make a new test_user and give it access to all data
+5e) request comments from WAB-NET team
+
+If it passes tests from WAB-NET team:
+6) merge test branch with master
+7) deploy with Ansible playbook
