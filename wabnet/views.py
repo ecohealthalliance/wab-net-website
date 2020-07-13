@@ -327,13 +327,18 @@ def bat_table(request):
         group.name.replace('View ', '') for group in request.user.groups.all()]
     if len(user_viewable_countries) == 0:
         bats = BatData.objects.none()
-    if 'all countries' in user_viewable_countries:
+    elif 'all countries' in user_viewable_countries:
         bats = BatData.objects.all()
     else:
         bats = BatData.objects.filter(
             parent__parent__country__in=user_viewable_countries)
     if request.GET.get('q'):
-        bats = bats.filter(keywords__keywords__contains=request.GET.get('q'))
+        valid_bat_list = []
+        for bat in bats:
+            bat_family, bat_species = get_bat_species(bat)
+            if bat_species == request.GET.get('q'):
+                valid_bat_list.append(bat)
+        bats = valid_bat_list
     if request.GET.get('hasRecording') == 'on':
         recording_parent_ids = get_recording_parent_ids()
         bats = bats.filter(uuid__in=recording_parent_ids)
@@ -374,7 +379,7 @@ def bat_view(request, bat_id):
     objects = SecondaryData.objects.filter(parent=bat_id)
     secondary_data_table = SecondaryDataTable(objects)
     RequestConfig(request).configure(secondary_data_table)
-    bad_family, bat_species = get_bat_species(bat_data)
+    bat_family, bat_species = get_bat_species(bat_data)
 
     exclude_fields = ['parent', 'title', 'created_at', 'created_by', 'uuid'] + [f.name for f in bat_family_fields]
     main_data = []
