@@ -19,7 +19,7 @@
         <div id="leafletmap"></div>
     </div>
     {% for species, samples in samples_by_species.items %}
-        <a href="/bats?q={{ species }}"><div class="statistic">
+        <a href="/bats?q={{ species }}&mode=species"><div class="statistic">
             <div class="species">{{ species }}</div>
             <div class="samples">{{ samples }} samples</div>
         </div></a>
@@ -31,7 +31,7 @@
 		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         styleId: 22677
 	}).addTo(myMap);
-	
+
 	locations.forEach(function(location){
 	    L.circleMarker(location.coords, {
             fillColor: location.accessible ? '#00AA11' : '#AA1100',

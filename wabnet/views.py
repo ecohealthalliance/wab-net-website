@@ -321,6 +321,20 @@ def get_recording_parent_ids():
 
     return parent_ids
 
+def get_valid_bat_list(bat_list, q, mode):
+    valid_bat_list = []
+    for bat in bat_list:
+        if mode == 'animal_id' or mode == None:
+            if get_bat_attr(bat, 'ANIMAL_ID_eg_PK00') == q:
+                valid_bat_list.append(bat)
+        elif mode == 'species':
+            bat_family, bat_species = get_bat_species(bat)
+            if bat_species == q:
+                valid_bat_list.append(bat)
+
+    return valid_bat_list
+
+
 @login_required
 def bat_table(request):
     user_viewable_countries = [
@@ -333,12 +347,7 @@ def bat_table(request):
         bats = BatData.objects.filter(
             parent__parent__country__in=user_viewable_countries)
     if request.GET.get('q'):
-        valid_bat_list = []
-        for bat in bats:
-            bat_family, bat_species = get_bat_species(bat)
-            if bat_species == request.GET.get('q'):
-                valid_bat_list.append(bat)
-        bats = valid_bat_list
+        bats = get_valid_bat_list(bats, request.GET.get('q'), request.GET.get('mode'))
     if request.GET.get('hasRecording') == 'on':
         recording_parent_ids = get_recording_parent_ids()
         bats = bats.filter(uuid__in=recording_parent_ids)
