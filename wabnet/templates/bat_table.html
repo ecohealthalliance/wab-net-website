@@ -9,6 +9,7 @@
         <form action="{{ request.path }}" class="navbar-form navbar-left" role="search">
           <div class="form-group">
             <input type="text" class="form-control" placeholder="Search text" name="q" value="{{request.GET.q}}"/>
+            <input type="hidden" name="mode" value="animal_id"/>
           </div>
           <div class="has-recording checkbox">
             <label>
