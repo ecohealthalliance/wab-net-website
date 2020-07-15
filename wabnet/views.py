@@ -319,21 +319,27 @@ def get_recording_parent_ids():
 
     parent_ids = getattr(ec5_models, targ_name).objects.values('parent')
 
-    return parent_ids
+    return list(parent_ids.values_list('parent', flat=True))
 
-def get_valid_bat_list(bat_list, q, mode):
-    valid_bat_list = []
+def get_recording_bat_list(bat_list):
+    parent_id_list = get_recording_parent_ids()
+
+    recording_uuid_list = []
     for bat in bat_list:
-        if mode == 'animal_id' or mode == None:
-            if get_bat_attr(bat, 'ANIMAL_ID_eg_PK00') == q:
-                valid_bat_list.append(bat)
-        elif mode == 'species':
-            bat_family, bat_species = get_bat_species(bat)
-            if bat_species == q:
-                valid_bat_list.append(bat)
+        if bat.uuid in parent_id_list:
+            recording_uuid_list.append(bat)
 
-    return valid_bat_list
+    return recording_uuid_list
 
+def get_query_bat_list(bat_list, q):
+    query_bat_list = []
+    for bat in bat_list:
+        bat_family, bat_species = get_bat_species(bat)
+        if bat_species == q:
+            query_bat_list.append(bat)
+        elif get_bat_attr(bat, 'ANIMAL_ID_eg_PK00') == q:
+            query_bat_list.append(bat)
+    return query_bat_list
 
 @login_required
 def bat_table(request):
@@ -347,10 +353,9 @@ def bat_table(request):
         bats = BatData.objects.filter(
             parent__parent__country__in=user_viewable_countries)
     if request.GET.get('q'):
-        bats = get_valid_bat_list(bats, request.GET.get('q'), request.GET.get('mode'))
+        bats = get_query_bat_list(bats, request.GET.get('q'))
     if request.GET.get('hasRecording') == 'on':
-        recording_parent_ids = get_recording_parent_ids()
-        bats = bats.filter(uuid__in=recording_parent_ids)
+        bats = get_recording_bat_list(bats)
     table = BatTable(bats)
     RequestConfig(request, paginate={'per_page': 20}).configure(table)
     return render(request, 'bat_table.html', {'table': table})
