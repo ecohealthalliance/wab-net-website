@@ -28,6 +28,7 @@ ALLOWED_HOSTS = ['*']
 INSTALLED_APPS = [
     'wabnet',
     'ec5_tools',
+    'airtable_tools',
     'django_tables2',
     'django.contrib.sites',
     'allauth',
@@ -151,3 +152,5 @@ EMAIL_HOST_PASSWORD = os.environ.get('SMTP_PASSWORD')
 DEFAULT_FROM_EMAIL = 'wabnet@eha.io'
 
 DJANGO_TABLES2_TEMPLATE = 'table.html'
+
+AIRTABLE_API_KEY = os.environ.get('AIRTABLE_API_KEY')
