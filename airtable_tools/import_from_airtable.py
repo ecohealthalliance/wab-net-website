@@ -80,6 +80,8 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
     # read models into directory(key=name, value=object)
     airtable_model_dict = {}
     root_model = None
+    barcode_name_dict = {}
+    screening_name_dict = {}
     for name, obj in inspect.getmembers(airtable_models):
         if inspect.isclass(obj) and issubclass(obj, models.Model):
             airtable_model_dict[name] = obj
@@ -131,6 +133,50 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
     logger.info(animal_id)
     cov_screening_data_id = json_response['records'][0]['fields']['CoV Screening Data']
     logger.info(cov_screening_data_id)
+
+    logger.info('*** fields ***')
+    barcode_field_dict = {}
+    for field in json_response['records'][0]['fields']:
+        logger.info(field)
+        short_var_name = airtable_models.Georgia_barcoding.get_name_from_verbose(field)
+        barcode_field_dict[short_var_name] = json_response['records'][0]['fields'][field]
+    logger.info('*** fields end ***')
+    logger.info(barcode_field_dict)
+    logger.info('*** end barcode_field_dict')
+
+
+    # test saving and deleting a record
+    logger.info('*** test save/delete ***')
+
+    current_animal_id = 'TEST0001'
+#    airtable_models.Georgia_screening.objects.create(
+#        animal_id='{}'.format(current_animal_id)
+#    )
+
+
+#    instance = airtable_models.Georgia_screening.objects.get(animal_id='TEST0001')
+#    instance.delete()
+#    logger.info(instance)
+
+
+#    airtable_models.Georgia_barcoding.objects.create(
+#        animal_id='{}'.format(current_animal_id),
+#        cov_screening_data=airtable_models.Georgia_screening.objects.get(animal_id='{}'.format(current_animal_id))
+#    )
+
+#    instance = airtable_models.Georgia_barcoding.objects.get(animal_id='TEST0001')
+#    instance.delete()
+#    logger.info(instance)
+
+    logger.info('*** end test save/delete ***')
+
+
+#    logger.info('*** model var names ***')
+#    for name, obj in inspect.getmembers(airtable_models.Georgia_barcoding):
+#        logger.info(name)
+#        logger.info(airtable_models.Georgia_barcoding.get_name_from_verbose(name))
+#    logger.info('*** end var names ***')
+
     # get associated CoV Screening Data record
     url = 'https://api.airtable.com/v0/appAEhvMc4tSS32ll/CoV%20Screening%20Data/{}'.format(cov_screening_data_id)
     r_screening = requests.get(url, headers=headers)
