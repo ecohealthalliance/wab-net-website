@@ -77,31 +77,16 @@ def refresh_ec5_token(ec5_client_id, ec5_secret_key, current_token = None):
 
 @transaction.atomic
 def import_from_airtable_transaction(airtable_models, only_new_data):
-    # read models into directory(key=name, value=object)
-    airtable_model_dict = {}
-    root_model = None
-    barcode_name_dict = {}
-    screening_name_dict = {}
-    for name, obj in inspect.getmembers(airtable_models):
-        if inspect.isclass(obj) and issubclass(obj, models.Model):
-            airtable_model_dict[name] = obj
-            if not hasattr(obj, 'cov_screening_data'):
-                root_model = obj
-
-    # collapse directory into list and sort with root at index 0
-    sorted_model_items = []
-    unresolved_models = list(airtable_model_dict.items())
-    for model_item in unresolved_models:
-        if model_item[1] == root_model:
-            sorted_model_items.insert(0, model_item)
-        else:
-            sorted_model_items.append(model_item)
 
     token = settings.AIRTABLE_API_KEY
 
+#    all_screening_records = airtable_models.Georgia_screening.objects.all()
+#    all_screening_records.delete()
+#    all_barcoding_records = airtable_models.Georgia_barcoding.objects.all()
+#    all_barcoding_records.delete()
+#    return
 
-    ###  FIX: backup procedure will have to be changed to either work for
-    ###       each database
+    ###  FIX: backup procedure will have to be changed
     '''
     if not only_new_data:
         # Disable foreign key constraint checking because deleting the old data
@@ -121,7 +106,6 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
         root_model.objects.all().delete()
     '''
 
-    #url = 'https://api.airtable.com/v0/appAEhvMc4tSS32ll/CoV%20Screening%20Data?maxRecords=1&view=Grid%20view'
     url = 'https://api.airtable.com/v0/appAEhvMc4tSS32ll/Host%20DNA%20Barcoding%20Data?maxRecords=1&view=Grid%20view'
     logger.info(url)
     headers = {'content-type': 'application/json', 'Accept-Charset': 'UTF-8', 'Authorization': 'Bearer {}'.format(token)}
@@ -134,21 +118,102 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
     cov_screening_data_id = json_response['records'][0]['fields']['CoV Screening Data']
     logger.info(cov_screening_data_id)
 
-    logger.info('*** fields ***')
-    barcode_field_dict = {}
+    logger.info('*** fields: barcode ***')
+    barcoding_field_dict = {}
     for field in json_response['records'][0]['fields']:
         logger.info(field)
         short_var_name = airtable_models.Georgia_barcoding.get_name_from_verbose(field)
-        barcode_field_dict[short_var_name] = json_response['records'][0]['fields'][field]
+        barcoding_field_dict[short_var_name] = json_response['records'][0]['fields'][field]
     logger.info('*** fields end ***')
-    logger.info(barcode_field_dict)
+    logger.info(barcoding_field_dict)
     logger.info('*** end barcode_field_dict')
+
+    airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'ec5')
+    logger.info('****  reading in screening data   ****')
+    # FIX: screening id is a list!! must be able associate many screening tables with barcode table
+    url = 'https://api.airtable.com/v0/appAEhvMc4tSS32ll/CoV%20Screening%20Data/{}'.format(cov_screening_data_id[0])
+    logger.info('*** URL ***')
+    logger.info(url)
+    headers = {'content-type': 'application/json', 'Accept-Charset': 'UTF-8', 'Authorization': 'Bearer {}'.format(token)}
+    r = requests.get(url, headers=headers)
+    logger.info(r)
+    json_response = r.json()
+    logger.info('*** fields: screening ***')
+    screening_field_dict = {}
+    logger.info(json_response)
+    for field in json_response['fields']:
+        logger.info(field)
+        short_var_name = airtable_models.Georgia_screening.get_name_from_verbose(field)
+        # FIX: validation: we want to check the two inputs of animal name to make sure
+        #      they're the same
+        if short_var_name == 'None':
+            logger.info('short_var_name = {0}  {1}'.format(short_var_name, field))
+        else:
+            screening_field_dict[short_var_name] = json_response['fields'][field]
+    logger.info('*** fields end ***')
+    for key,val in screening_field_dict.items():
+        logger.info('{0}: {1}'.format(key, val))
+    logger.info('*** end screening_field_dict')
+
+    ### test importing first record for each table
+    screening_keys = screening_field_dict.keys()
+    logger.info('creating screening record with animal_id = {}'.format(screening_field_dict['animal_id']))
+    airtable_models.Georgia_screening.objects.create(
+        animal_id = '{}'.format(screening_field_dict['animal_id'])
+    )
+
+#  working hard-coded test of create Georgia_barcoding record
+#    airtable_models.Georgia_barcoding.objects.create(
+#        animal_id='{}'.format(current_animal_id),
+#        cov_screening_data=airtable_models.Georgia_screening.objects.get(animal_id='{}'.format(current_animal_id))
+#    )
+
+    logger.info('** curr screening animal_id = {}'.format(screening_field_dict['animal_id']))
+    curr_record = airtable_models.Georgia_screening.objects.get(animal_id='{}'.format(screening_field_dict['animal_id']))
+    logger.info(dir(curr_record))
+
+    for curr_key in screening_keys:
+        if curr_key != 'animal_id':
+            logger.info('updating screening key {}'.format(curr_key))
+            setattr(curr_record, curr_key, screening_field_dict[curr_key])
+
+    for field in screening_keys:
+        logger.info('screening field {0}: {1}'.format(field, getattr(curr_record, field)))
+
+    instance = airtable_models.Georgia_screening.objects.get(animal_id='GE0001')
+    logger.info(dir(instance))
+
+    # Now create the barcoding table
+    current_animal_id = barcoding_field_dict['animal_id']
+    airtable_models.Georgia_barcoding.objects.create(
+        animal_id='{}'.format(current_animal_id),
+        cov_screening_data=airtable_models.Georgia_screening.objects.get(animal_id='{}'.format(current_animal_id))
+    )
+    barcoding_keys = barcoding_field_dict.keys()
+    #airtable_models.Georgia_barcoding.objects.create(
+    #    animal_id = barcoding_field_dict['animal_id'],
+    #    cov_screening_data = airtable_models.Georgia_screening.objects.get(animal_id='{}'.format(barcoding_field_dict['animal_id']))
+    #)
+
+    curr_record = airtable_models.Georgia_barcoding.objects.get(animal_id='{}'.format(barcoding_field_dict['animal_id']))
+
+    for curr_key in barcoding_keys:
+        if curr_key != 'animal_id' and curr_key != 'cov_screening_data':
+            logger.info('updating screening key {}'.format(curr_key))
+            setattr(curr_record, curr_key, barcoding_field_dict[curr_key])
+
+    for field in barcoding_keys:
+        logger.info('barcoding field {0}: {1}'.format(field, getattr(curr_record, field)))
+
+    instance = airtable_models.Georgia_barcoding.objects.get(animal_id='GE0001')
+    logger.info(dir(instance))
+
 
 
     # test saving and deleting a record
     logger.info('*** test save/delete ***')
 
-    current_animal_id = 'TEST0001'
+#    current_animal_id = 'TEST0001'
 #    airtable_models.Georgia_screening.objects.create(
 #        animal_id='{}'.format(current_animal_id)
 #    )
@@ -176,109 +241,3 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
 #        logger.info(name)
 #        logger.info(airtable_models.Georgia_barcoding.get_name_from_verbose(name))
 #    logger.info('*** end var names ***')
-
-    # get associated CoV Screening Data record
-    url = 'https://api.airtable.com/v0/appAEhvMc4tSS32ll/CoV%20Screening%20Data/{}'.format(cov_screening_data_id)
-    r_screening = requests.get(url, headers=headers)
-    json_response_screening = r.json()
-    logger.info(json_response_screening)
-
-    '''
-    objects_created = 0
-    for model_name, model in sorted_model_items:
-        params  = {}
-        if model.ec5_is_branch:
-            params['branch_ref'] = model.ec5_ref
-            params['form_ref'] = model.parent.field.related_model.ec5_ref
-        else:
-            params['form_ref'] = model.ec5_ref
-        if only_new_data:
-            if model.objects.count() > 0:
-                latest_created_at = model.objects.latest('created_at').created_at
-                params['filter_by'] = 'created_at'
-                params['filter_from'] = (
-                    latest_created_at + datetime.timedelta(seconds=1)
-                ).strftime('%Y-%m-%dT%H:%M:%S')
-        page = 1
-        total_pages = 1
-        all_entries = []
-        while page <= total_pages:
-            params['page'] = page
-            token = refresh_ec5_token(settings.EC5_CLIENT_ID, settings.EC5_SECRET_KEY, token)
-            response = throttled_request_get('https://five.epicollect.net/api/export/entries/' + settings.EC5_PROJECT_NAME,
-                params=params,
-                headers={
-                    'Authorization': 'Bearer ' + token['access_token']
-                })
-            response.raise_for_status()
-            response_json = response.json()
-            all_entries += response_json['data']['entries']
-            total_pages = response_json['meta']['last_page']
-            page += 1
-        for entry in all_entries:
-            values = {}
-            file_values = {}
-            for key, value in entry.items():
-                if not value:
-                    continue
-                if re.match(r"\d+_.*", key) and format_name(key) not in ec5_model_dict:
-                    if isinstance(model._meta.get_field(format_name(key)), models.FileField):
-                        if value.endswith('.jpg'):
-                            params = {
-                                'type': 'photo',
-                                'format': 'entry_original',
-                                'name': value
-                            }
-                        else:
-                            params = {
-                                'type': 'audio',
-                                'format': 'audio',
-                                'name': value
-                            }
-                        token = refresh_ec5_token(settings.EC5_CLIENT_ID, settings.EC5_SECRET_KEY, token)
-                        response = throttled_request_get('https://five.epicollect.net/api/export/media/' + settings.EC5_PROJECT_NAME,
-                            params=params,
-                            headers={
-                                'Authorization': 'Bearer ' + token['access_token']
-                            })
-                        response.raise_for_status()
-                        file_values[format_name(key)] = (value, ContentFile(response.content),)
-                    else:
-                        values[format_name(key)] = value
-            values['created_at'] = datetime.datetime.strptime(
-                entry['created_at'].replace('Z', '-0000'),
-                '%Y-%m-%dT%H:%M:%S.%f%z')
-            values['created_by'] = entry['created_by']
-            values['title'] = entry['title']
-            keywords = ' '.join(str(v) for v in values.values())
-            if 'ec5_uuid' in entry:
-                values['uuid'] = entry['ec5_uuid']
-            else:
-                idhash = hashlib.sha256()
-                if 'ec5_branch_owner_uuid' in entry:
-                    idhash.update(entry['ec5_branch_owner_uuid'].encode('ascii', 'replace'))
-                idhash.update(entry['title'].encode('ascii', 'replace'))
-                idhash.update(entry['created_at'].encode('ascii', 'replace'))
-                idhash.update(entry['created_by'].encode('ascii', 'replace'))
-                values['id'] = idhash.hexdigest()
-            parent_id = entry.get('ec5_branch_owner_uuid', entry.get('ec5_parent_uuid'))
-            if parent_id:
-                values['parent'] = model.parent.field.related_model.objects.get(pk=parent_id)
-            model_instance = model(**values)
-            for field_name, file_data in file_values.items():
-                getattr(model_instance, field_name).save(*file_data, save=False)
-            try:
-                model_instance.save()
-            except:
-                print(values)
-                raise
-            objects_created += 1
-            EntityKeywords(content_object=model_instance, keywords=keywords).save()
-
-    # Create group for each Country
-    for site in ec5_models.SiteData.objects.all():
-        if site.country:
-            new_group, created = Group.objects.get_or_create(name="View " + site.country)
-    Group.objects.get_or_create(name="View all countries")
-    return objects_created
-    '''

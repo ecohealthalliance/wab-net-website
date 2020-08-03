@@ -3,6 +3,15 @@ from django.db import models
 from ec5_tools import entity_keywords_model
 from django.contrib.contenttypes.fields import GenericRelation
 
+import logging
+
+logger = logging.getLogger(__name__)
+hdlr = logging.FileHandler('./log.txt')
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+hdlr.setFormatter(formatter)
+logger.addHandler(hdlr)
+logger.setLevel(logging.INFO)
+
 # Notes:
 # 1) animal_id has a duplicate field in the screening tables for verification
 # 2) animal_id col in both tables but barcoding table also has CoV Screening
@@ -10,7 +19,8 @@ from django.contrib.contenttypes.fields import GenericRelation
 
 class Georgia_screening(models.Model):
     animal_id = models.TextField(verbose_name='Unique ANIMAL ID')
-    sample_id = models.TextField(verbose_name='SAMPLE ID')
+    animal_id_reentry = models.TextField(verbose_name='Unique ANIMAL ID (re-entry)')
+    sample_id = models.TextField(verbose_name='Unique SAMPLE ID')
     sample_type = models.TextField(verbose_name='Sample type')
     sample_storage_media = models.TextField(verbose_name='Sample storage media')
     storage_facility = models.TextField(verbose_name='Storage facility')
@@ -28,7 +38,7 @@ class Georgia_screening(models.Model):
     positive_control_2 = models.TextField(verbose_name='Positive control 2')
     positive_control_2_visible = models.TextField(verbose_name='Positive control 2 visible')
     negative_control = models.TextField(verbose_name='Negative control')
-    gel_electrophoresis_results = models.TextField(verbose_name='Gel electrophoresis_results')
+    gel_electrophoresis_results = models.TextField(verbose_name='Gel electrophoresis results')
     gel_electrophoresis_notes_comments = models.TextField(verbose_name='Gel electrophoresis notes/comments')
     gel_photo_labeled = models.FileField(upload_to='airtable_georgia/', verbose_name='Gel photo - labeled')
     confirmation_test_type = models.TextField(verbose_name='Confirmation test type')
@@ -46,6 +56,18 @@ class Georgia_screening(models.Model):
     query_cover_top_BLAST_match = models.FloatField(verbose_name='Query cover (%) for top BLAST match', null=True)
     percent_identity_top_BLAST_match = models.FloatField(verbose_name='Percent identity (%) for top BLAST match', null=True)
     screenshot_top_5_BLAST_matches = models.FileField(upload_to='airtable_georgia/', verbose_name='Screenshot photo of top 5 BLAST matches')
+
+    # FIX: don't duplicate this method for all classes!!
+    #      https://stackoverflow.com/questions/45189066/define-methods-for-multiple-classes
+    def get_name_from_verbose(verbose_name):
+        for f in Georgia_screening._meta.get_fields():
+            if hasattr(f, 'verbose_name'):
+                curr_verbose_name = getattr(f, 'verbose_name')
+                if curr_verbose_name == verbose_name:
+                    return getattr(f, 'name')
+        # return None if verbose_name not found
+        logger.info('verbose_name {} not found!!'.format(verbose_name))
+        raise ValueError('airtable_models.py:Georgia_screening():verbose name {} not found'.format(verbose_name))
 
 class Georgia_barcoding(models.Model):
     animal_id = models.TextField(verbose_name='Unique ANIMAL ID')
@@ -76,5 +98,5 @@ class Georgia_barcoding(models.Model):
                 curr_verbose_name = getattr(f, 'verbose_name')
                 if curr_verbose_name == verbose_name:
                     return getattr(f, 'name')
-        # return None if verbose_name not found
-        return None
+        logger.info('verbose_name {} not found!!'.format(verbose_name))
+        raise ValueError('airtable_models.py:Georgia_barcoding():verbose name {} not found'.format(verbose_name))
