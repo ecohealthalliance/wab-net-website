@@ -30,6 +30,40 @@ class Georgia_aligned_cov_seuqence_submitted_to_blast(models.Model):
 # 2) animal_id col in both tables but barcoding table also has CoV Screening
 #    Data col that associates with parent table (foreign key)
 
+class Georgia_barcoding(models.Model):
+    animal_id = models.TextField(verbose_name='Unique ANIMAL ID', null=False)
+    date_rtpcr = models.DateTimeField(verbose_name='Date of RT-PCR', null=True)
+    date_gel_electrophoresis = models.DateTimeField(verbose_name='Date of gel electrophoresis', null=True)
+    gel_electrophoresis_results = models.TextField(verbose_name='Gel electrophoresis results')
+    gel_electrophoresis_notes = models.TextField(verbose_name='Gel electrophoresis notes')
+    gel_photo_labeled = models.FileField(upload_to='airtable_georgia/', verbose_name='Gel photo - labeled')
+    date_sequenced = models.DateTimeField(verbose_name='Date of sequencing', null=True)
+    sequencing_results = models.TextField(verbose_name='Sequencing results')
+    sequencing_results_other = models.TextField(verbose_name='Sequencing results - if Other')
+    sequencing_notes = models.TextField(verbose_name='Sequencing notes')
+    raw_host_sequence_txt = models.FileField(upload_to='airtable_georgia/', verbose_name='Raw host sequence - .txt files')
+    raw_host_sequence_ab1 = models.FileField(upload_to='airtable_georgia/', verbose_name='Raw host sequence - .ab1 files')
+    raw_host_sequence_pdf = models.FileField(upload_to='airtable_georgia/', verbose_name='Raw host sequence - .pdf files')
+    aligned_host_seuqence_submitted_to_blast = models.FileField(upload_to='airtable_georgia/', verbose_name='Aligned host sequence (.fasta file) submitted to BLAST')
+    host_identified_blast = models.TextField(verbose_name='Host species identified using BLAST')
+    host_identified_blast_other = models.TextField(verbose_name='Host species identified using BLAST - if Other')
+    query_cover_top_BLAST_match = models.FloatField(verbose_name='Query cover (%) for top BLAST match', null=True)
+    percent_identity_top_BLAST_match = models.FloatField(verbose_name='Percent identity (%) for top BLAST match', null=True)
+    screenshot_top_5_BLAST_matches = models.FileField(upload_to='airtable_georgia/', verbose_name='Screenshot photo of top 5 BLAST matches')
+    #cov_screening_data = models.ForeignKey(Georgia_screening, on_delete=models.CASCADE, verbose_name='CoV Screening Data')
+    cov_screening_data = models.TextField(verbose_name='CoV Screening Data', null=False)
+
+    def get_name_from_verbose(verbose_name):
+        #return Georgia_barcoding._meta.get_field(animal_id).verbose_name.title()
+        for f in Georgia_barcoding._meta.get_fields():
+            if hasattr(f, 'verbose_name'):
+                curr_verbose_name = getattr(f, 'verbose_name')
+                if curr_verbose_name == verbose_name:
+                    return getattr(f, 'name')
+        logger.info('Error: airtable_modes.py: get_name_from_verbose():verbose_name {} not found!!'.format(verbose_name))
+        raise ValueError('airtable_models.py:Georgia_barcoding():verbose name {} not found'.format(verbose_name))
+
+
 class Georgia_screening(models.Model):
     animal_id = models.TextField(verbose_name='Unique ANIMAL ID')
     animal_id_reentry = models.TextField(verbose_name='Unique ANIMAL ID (re-entry)')
@@ -75,7 +109,7 @@ class Georgia_screening(models.Model):
     percent_identity_top_BLAST_match = models.FloatField(verbose_name='Percent identity (%) for top BLAST match', null=True)
     #screenshot_top_5_BLAST_matches = models.FileField(upload_to='airtable_georgia/', verbose_name='Screenshot photo of top 5 BLAST matches')
     screenshot_top_5_BLAST_matches = models.TextField(verbose_name='Screenshot photo of top 5 BLAST matches')
-
+    barcoding_record = models.ForeignKey(Georgia_barcoding, on_delete=models.CASCADE)
     # FIX: don't duplicate this method for all classes!!
     #      https://stackoverflow.com/questions/45189066/define-methods-for-multiple-classes
     def get_name_from_verbose(verbose_name):
@@ -87,35 +121,3 @@ class Georgia_screening(models.Model):
         # return None if verbose_name not found
         logger.info('Error: airtable_modes.py: get_name_from_verbose(): verbose_name {} not found!!'.format(verbose_name))
         raise ValueError('airtable_models.py:Georgia_screening():verbose name {} not found'.format(verbose_name))
-
-class Georgia_barcoding(models.Model):
-    animal_id = models.TextField(verbose_name='Unique ANIMAL ID')
-    date_rtpcr = models.DateTimeField(verbose_name='Date of RT-PCR', null=True)
-    date_gel_electrophoresis = models.DateTimeField(verbose_name='Date of gel electrophoresis', null=True)
-    gel_electrophoresis_results = models.TextField(verbose_name='Gel electrophoresis results')
-    gel_electrophoresis_notes = models.TextField(verbose_name='Gel electrophoresis notes')
-    gel_photo_labeled = models.FileField(upload_to='airtable_georgia/', verbose_name='Gel photo - labeled')
-    date_sequenced = models.DateTimeField(verbose_name='Date of sequencing', null=True)
-    sequencing_results = models.TextField(verbose_name='Sequencing results')
-    sequencing_results_other = models.TextField(verbose_name='Sequencing results - if Other')
-    sequencing_notes = models.TextField(verbose_name='Sequencing notes')
-    raw_host_sequence_txt = models.FileField(upload_to='airtable_georgia/', verbose_name='Raw host sequence - .txt files')
-    raw_host_sequence_ab1 = models.FileField(upload_to='airtable_georgia/', verbose_name='Raw host sequence - .ab1 files')
-    raw_host_sequence_pdf = models.FileField(upload_to='airtable_georgia/', verbose_name='Raw host sequence - .pdf files')
-    aligned_host_seuqence_submitted_to_blast = models.FileField(upload_to='airtable_georgia/', verbose_name='Aligned host sequence (.fasta file) submitted to BLAST')
-    host_identified_blast = models.TextField(verbose_name='Host species identified using BLAST')
-    host_identified_blast_other = models.TextField(verbose_name='Host species identified using BLAST - if Other')
-    query_cover_top_BLAST_match = models.FloatField(verbose_name='Query cover (%) for top BLAST match', null=True)
-    percent_identity_top_BLAST_match = models.FloatField(verbose_name='Percent identity (%) for top BLAST match', null=True)
-    screenshot_top_5_BLAST_matches = models.FileField(upload_to='airtable_georgia/', verbose_name='Screenshot photo of top 5 BLAST matches')
-    cov_screening_data = models.ForeignKey(Georgia_screening, on_delete=models.CASCADE, verbose_name='CoV Screening Data')
-
-    def get_name_from_verbose(verbose_name):
-        #return Georgia_barcoding._meta.get_field(animal_id).verbose_name.title()
-        for f in Georgia_barcoding._meta.get_fields():
-            if hasattr(f, 'verbose_name'):
-                curr_verbose_name = getattr(f, 'verbose_name')
-                if curr_verbose_name == verbose_name:
-                    return getattr(f, 'name')
-        logger.info('Error: airtable_modes.py: get_name_from_verbose():verbose_name {} not found!!'.format(verbose_name))
-        raise ValueError('airtable_models.py:Georgia_barcoding():verbose name {} not found'.format(verbose_name))

@@ -8,7 +8,6 @@ import datetime
 from django.core.files.base import ContentFile
 from django.db import models
 import re
-from .utils import format_name
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 #from .entity_keywords_model import EntityKeywords
@@ -114,7 +113,7 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
     ###  4) create barcoding record in django for barcoding record from airtable
     ###  5) repeat with next barcoding record from airtable
 
-    N_records = 100
+    N_records = 10
     url = 'https://api.airtable.com/v0/appAEhvMc4tSS32ll/Host%20DNA%20Barcoding%20Data?maxRecords={0}&view=Grid%20view'.format(N_records)
     logger.info(url)
     headers = {'content-type': 'application/json', 'Accept-Charset': 'UTF-8', 'Authorization': 'Bearer {}'.format(token)}
@@ -129,6 +128,7 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
         logger.info('****  {}  ****'.format(idx_records))
         logger.info('')
 
+        # read in barcoding data
         logger.info('****  reading in barcoding data   ****')
         animal_id = json_response_barcode['records'][idx_records]['fields']['Unique ANIMAL ID']
         logger.info(animal_id)
@@ -140,7 +140,31 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
             short_var_name = airtable_models.Georgia_barcoding.get_name_from_verbose(field)
             barcoding_field_dict[short_var_name] = json_response_barcode['records'][idx_records]['fields'][field]
 
+        # Now create the barcoding table
+        airtable_models.Georgia_barcoding.objects.create(
+            animal_id='{}'.format(barcoding_field_dict['animal_id']),
+            cov_screening_data='{}'.format(barcoding_field_dict['cov_screening_data'])
+        )
 
+        curr_record = airtable_models.Georgia_barcoding.objects.get(animal_id='{}'.format(barcoding_field_dict['animal_id']))
+
+        barcoding_keys = barcoding_field_dict.keys()
+
+        for curr_key in barcoding_keys:
+            if curr_key != 'animal_id' and curr_key != 'cov_screening_data':
+                logger.info('updating screening key {}'.format(curr_key))
+                setattr(curr_record, curr_key, barcoding_field_dict[curr_key])
+
+        for field in barcoding_keys:
+            if field == 'gel_photo_labeled':
+                logger.info('******  we got a gel photo file!  ******')
+            logger.info('barcoding field {0}: {1}'.format(field, getattr(curr_record, field)))
+
+        instance = airtable_models.Georgia_barcoding.objects.all()
+        logger.info(dir(instance))
+
+
+        # read in screening data
         #airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'airtable')
         logger.info('****  reading in screening data   ****')
         # FIX: screening id is a list!! must be able associate many screening tables with barcode table
@@ -164,11 +188,12 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
         for key,val in screening_field_dict.items():
             logger.info('{0}: {1}'.format(key, val))
 
-
+        # create screening table(s)
         screening_keys = screening_field_dict.keys()
         logger.info('creating screening record with animal_id = {}'.format(screening_field_dict['animal_id']))
         airtable_models.Georgia_screening.objects.create(
-            animal_id = '{}'.format(screening_field_dict['animal_id'])
+            animal_id = '{}'.format(screening_field_dict['animal_id']),
+            barcoding_record=airtable_models.Georgia_barcoding.objects.get(animal_id='{}'.format(screening_field_dict['animal_id']))
         )
 
         logger.info('** curr screening animal_id = {}'.format(screening_field_dict['animal_id']))
@@ -198,9 +223,14 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
         for field in screening_keys:
             logger.info('screening field {0}: {1}'.format(field, getattr(curr_record, field)))
 
+        ## show barcoding records associated with the screening record
+        logger.info('*** show screening reports related to this barcoding report')
+        logger.info(airtable_models.Georgia_screening.objects.filter(barcoding_record__animal_id=screening_field_dict['animal_id']))
+
         instance = airtable_models.Georgia_screening.objects.all()
         logger.info(dir(instance))
 
+'''
         # Now create the barcoding table
         current_animal_id = barcoding_field_dict['animal_id']
         airtable_models.Georgia_barcoding.objects.create(
@@ -224,8 +254,8 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
 
         instance = airtable_models.Georgia_barcoding.objects.all()
         logger.info(dir(instance))
-
         # test saving and deleting a record
         logger.info('*** test save/delete ***')
 
         logger.info('*** end test save/delete ***')
+'''
