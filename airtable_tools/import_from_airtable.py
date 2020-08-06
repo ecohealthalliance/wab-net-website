@@ -113,8 +113,10 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
     ###  4) create barcoding record in django for barcoding record from airtable
     ###  5) repeat with next barcoding record from airtable
 
-    N_records = 10
-    url = 'https://api.airtable.com/v0/appAEhvMc4tSS32ll/Host%20DNA%20Barcoding%20Data?maxRecords={0}&view=Grid%20view'.format(N_records)
+    airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'airtable_georgia/')
+
+    page_size = 100
+    url = 'https://api.airtable.com/v0/appAEhvMc4tSS32ll/Host%20DNA%20Barcoding%20Data?view=Grid%20view&pageSize={}'.format(page_size)
     logger.info(url)
     headers = {'content-type': 'application/json', 'Accept-Charset': 'UTF-8', 'Authorization': 'Bearer {}'.format(token)}
     r_barcode = requests.get(url, headers=headers)
@@ -123,139 +125,171 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
         raise ValueError('Error: got return code {0} for AirTable barcoding read'.format(r_barcode.status_code))
     json_response_barcode = r_barcode.json()
     logger.info(json_response_barcode)
+    if 'offset' in json_response_barcode:
+        logger.info(json_response_barcode['offset'])
+    logger.info(len(json_response_barcode['records']))
+    record_batch_size = len(json_response_barcode['records'])
 
-    for idx_records in range(N_records):
-        logger.info('****  {}  ****'.format(idx_records))
-        logger.info('')
+    bad_screening_list = []
 
-        # read in barcoding data
-        logger.info('****  reading in barcoding data   ****')
-        animal_id = json_response_barcode['records'][idx_records]['fields']['Unique ANIMAL ID']
-        logger.info(animal_id)
-        cov_screening_data_id = json_response_barcode['records'][idx_records]['fields']['CoV Screening Data']
-        logger.info(cov_screening_data_id)
+    done = False
+    while not done:
 
-        barcoding_field_dict = {}
-        for field in json_response_barcode['records'][idx_records]['fields']:
-            short_var_name = airtable_models.Georgia_barcoding.get_name_from_verbose(field)
-            barcoding_field_dict[short_var_name] = json_response_barcode['records'][idx_records]['fields'][field]
+        for idx_records in range(record_batch_size):
+            logger.info('****  {}  ****'.format(idx_records))
+            logger.info('')
 
-        # Now create the barcoding table
-        airtable_models.Georgia_barcoding.objects.create(
-            animal_id='{}'.format(barcoding_field_dict['animal_id']),
-            cov_screening_data='{}'.format(barcoding_field_dict['cov_screening_data'])
-        )
+            # read in barcoding data
+            logger.info('****  reading in barcoding data   ****')
+            animal_id = json_response_barcode['records'][idx_records]['fields']['Unique ANIMAL ID']
+            logger.info(animal_id)
+            cov_screening_data_id = json_response_barcode['records'][idx_records]['fields']['CoV Screening Data']
+            logger.info(cov_screening_data_id)
 
-        curr_record = airtable_models.Georgia_barcoding.objects.get(animal_id='{}'.format(barcoding_field_dict['animal_id']))
+            barcoding_field_dict = {}
+            for field in json_response_barcode['records'][idx_records]['fields']:
+                short_var_name = airtable_models.Georgia_barcoding.get_name_from_verbose(field)
+                barcoding_field_dict[short_var_name] = json_response_barcode['records'][idx_records]['fields'][field]
 
-        barcoding_keys = barcoding_field_dict.keys()
+            # Now create the barcoding table
+            logger.info('*** creating barcoding record {}'.format(barcoding_field_dict['animal_id']))
+            create_return_val = airtable_models.Georgia_barcoding.objects.create(
+                animal_id='{}'.format(barcoding_field_dict['animal_id']),
+                cov_screening_data='{}'.format(barcoding_field_dict['cov_screening_data'])
+            )
+            logger.info(create_return_val)
 
-        for curr_key in barcoding_keys:
-            if curr_key != 'animal_id' and curr_key != 'cov_screening_data':
-                logger.info('updating screening key {}'.format(curr_key))
-                setattr(curr_record, curr_key, barcoding_field_dict[curr_key])
+            curr_record = airtable_models.Georgia_barcoding.objects.get(animal_id='{}'.format(barcoding_field_dict['animal_id']))
 
-        for field in barcoding_keys:
-            if field == 'gel_photo_labeled':
-                logger.info('******  we got a gel photo file!  ******')
-            logger.info('barcoding field {0}: {1}'.format(field, getattr(curr_record, field)))
+            barcoding_keys = barcoding_field_dict.keys()
 
-        instance = airtable_models.Georgia_barcoding.objects.all()
-        logger.info(dir(instance))
+            for curr_key in barcoding_keys:
+                # FIX: this list should be auto populated somewhere, so this
+                #      list doesn't need to be maintained
+                #      Really, these should all be foreign keys onto new tables
+                array_field_list = ['gel_photo_labeled','raw_host_sequence_txt',
+                                    'raw_host_sequence_ab1','raw_host_sequence_pdf',
+                                    'aligned_host_seuqence_submitted_to_blast',
+                                    'screenshot_top_5_BLAST_matches']
+                if curr_key in array_field_list:
+                    # FIX: this is a list of dictionaries!!!
+                    # FIX: should append timestamp to filename
+                    # FIX: need to get thumbnails for images if available
+                    logger.info('*** got barcoding file {} ***'.format(curr_key))
+                    for idx_file_list in range(len(barcoding_field_dict[curr_key])):
+                        targ_url = barcoding_field_dict[curr_key][idx_file_list]['url']
+                        logger.info(targ_url)
+                        targ_filename = barcoding_field_dict[curr_key][idx_file_list]['filename']
+                        logger.info(targ_filename)
+                        urllib.request.urlretrieve(targ_url, airtable_media_path + targ_filename)
+                        setattr(curr_record, curr_key, barcoding_field_dict[curr_key][idx_file_list])
+                elif curr_key != 'animal_id' and curr_key != 'cov_screening_data':
+                    logger.info('updating screening key {}'.format(curr_key))
+                    setattr(curr_record, curr_key, barcoding_field_dict[curr_key])
+                ## FIX: remove cov_screening_data from elif above!
+
+            for field in barcoding_keys:
+                if field == 'gel_photo_labeled':
+                    logger.info('******  we got a gel photo file!  ******')
+                logger.info('barcoding field {0}: {1}'.format(field, getattr(curr_record, field)))
+
+            instance = airtable_models.Georgia_barcoding.objects.all()
+            logger.info(dir(instance))
 
 
-        # read in screening data
-        #airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'airtable')
-        logger.info('****  reading in screening data   ****')
-        # FIX: screening id is a list!! must be able associate many screening tables with barcode table
-        url = 'https://api.airtable.com/v0/appAEhvMc4tSS32ll/CoV%20Screening%20Data/{}'.format(cov_screening_data_id[0])
-        r_screening = requests.get(url, headers=headers)
-        logger.info(r_screening)
-        if r_screening.status_code != 200:
-            raise ValueError('Error: got return code {0} for AirTable read of {1}'.format(r_screening.status_code, cov_screening_data_id[0]))
+            # read in screening data
+            #airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'airtable')
+            logger.info('****  reading in screening data   ****')
+            # FIX: screening id is a list!! must be able associate many screening tables with barcode table
+            url = 'https://api.airtable.com/v0/appAEhvMc4tSS32ll/CoV%20Screening%20Data/{}'.format(cov_screening_data_id[0])
+            r_screening = requests.get(url, headers=headers)
+            logger.info(r_screening)
+            if r_screening.status_code != 200:
+                raise ValueError('Error: got return code {0} for AirTable read of {1}'.format(r_screening.status_code, cov_screening_data_id[0]))
 
-        json_response_screening = r_screening.json()
-        logger.info(json_response_screening)
-        screening_field_dict = {}
-        for field in json_response_screening['fields']:
-            short_var_name = airtable_models.Georgia_screening.get_name_from_verbose(field)
-            # FIX: validation: we want to check the two inputs of animal name to make sure
-            #      they're the same
-            if short_var_name == 'None':
-                logger.info('*** Error: got \'None\' for short_var_name = {0}  {1}'.format(short_var_name, field))
-            else:
-                screening_field_dict[short_var_name] = json_response_screening['fields'][field]
-        for key,val in screening_field_dict.items():
-            logger.info('{0}: {1}'.format(key, val))
+            json_response_screening = r_screening.json()
+            logger.info(json_response_screening)
+            screening_field_dict = {}
+            for field in json_response_screening['fields']:
+                short_var_name = airtable_models.Georgia_screening.get_name_from_verbose(field)
+                # FIX: validation: we want to check the two inputs of animal name to make sure
+                #      they're the same
+                if short_var_name == 'None':
+                    logger.info('*** Error: got \'None\' for short_var_name = {0}  {1}'.format(short_var_name, field))
+                else:
+                    screening_field_dict[short_var_name] = json_response_screening['fields'][field]
+            for key,val in screening_field_dict.items():
+                logger.info('{0}: {1}'.format(key, val))
 
-        # create screening table(s)
-        screening_keys = screening_field_dict.keys()
-        logger.info('creating screening record with animal_id = {}'.format(screening_field_dict['animal_id']))
-        airtable_models.Georgia_screening.objects.create(
-            animal_id = '{}'.format(screening_field_dict['animal_id']),
-            barcoding_record=airtable_models.Georgia_barcoding.objects.get(animal_id='{}'.format(screening_field_dict['animal_id']))
-        )
+            ## check if screening record exists before trying to make record
+            if airtable_models.Georgia_barcoding.objects.filter(animal_id='{}'.format(screening_field_dict['animal_id'])).count() == 0:
+                logger.info("Error: didn't find associated screening record for animal_id = {}".format(screening_field_dict['animal_id']))
+                bad_screening_list.append(screening_field_dict['animal_id'])
+                continue
 
-        logger.info('** curr screening animal_id = {}'.format(screening_field_dict['animal_id']))
-        curr_record = airtable_models.Georgia_screening.objects.get(animal_id='{}'.format(screening_field_dict['animal_id']))
-        logger.info(dir(curr_record))
+            # create screening table(s)
+            screening_keys = screening_field_dict.keys()
+            logger.info('creating screening record with animal_id = ##{}##'.format(screening_field_dict['animal_id']))
+            airtable_models.Georgia_screening.objects.create(
+                animal_id = '{}'.format(screening_field_dict['animal_id']),
+                barcoding_record=airtable_models.Georgia_barcoding.objects.get(animal_id='{}'.format(screening_field_dict['animal_id']))
+            )
 
-        airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'airtable_georgia/')
-        for curr_key in screening_keys:
-            array_field_list = ['gel_photo_labeled', 'raw_cov_sequence_txt',
-                                'aligned_cov_seuqence_submitted_to_blast',
-                                'screenshot_top_5_BLAST_matches',
-                                'raw_cov_sequence_ab1', 'raw_cov_sequence_pdf']
-            if curr_key in array_field_list:
-                # FIX: this is a list of dictionaries!!!
-                # FIX: should append timestamp to filename
-                # FIX: need to get thumbnails for images if available
-                for idx_file_list in range(len(screening_field_dict[curr_key])):
-                    targ_url = screening_field_dict[curr_key][idx_file_list]['url']
-                    targ_filename = screening_field_dict[curr_key][idx_file_list]['filename']
-                    logger.info('*** aligned cov blast url: {} ***'.format(targ_url))
-                    urllib.request.urlretrieve(targ_url, airtable_media_path + targ_filename)
-                    setattr(curr_record, curr_key, screening_field_dict[curr_key][idx_file_list])
-            elif curr_key != 'animal_id':
-                logger.info('updating screening key {}'.format(curr_key))
-                setattr(curr_record, curr_key, screening_field_dict[curr_key])
+            logger.info('** curr screening animal_id = {}'.format(screening_field_dict['animal_id']))
+            curr_record = airtable_models.Georgia_screening.objects.get(animal_id='{}'.format(screening_field_dict['animal_id']))
+            logger.info(dir(curr_record))
 
-        for field in screening_keys:
-            logger.info('screening field {0}: {1}'.format(field, getattr(curr_record, field)))
+            #airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'airtable_georgia/')
+            for curr_key in screening_keys:
+                # FIX: this list should be auto populated somewhere, so this
+                #      list doesn't need to be maintained
+                #      Really, these should all be foreign keys onto new tables
+                array_field_list = ['gel_photo_labeled', 'raw_cov_sequence_txt',
+                                    'aligned_cov_seuqence_submitted_to_blast',
+                                    'screenshot_top_5_BLAST_matches',
+                                    'raw_cov_sequence_ab1', 'raw_cov_sequence_pdf']
+                if curr_key in array_field_list:
+                    # FIX: this is a list of dictionaries!!!
+                    # FIX: should append timestamp to filename
+                    # FIX: need to get thumbnails for images if available
+                    for idx_file_list in range(len(screening_field_dict[curr_key])):
+                        targ_url = screening_field_dict[curr_key][idx_file_list]['url']
+                        targ_filename = screening_field_dict[curr_key][idx_file_list]['filename']
+                        logger.info('*** aligned cov blast url: {} ***'.format(targ_url))
+                        urllib.request.urlretrieve(targ_url, airtable_media_path + targ_filename)
+                        setattr(curr_record, curr_key, screening_field_dict[curr_key][idx_file_list])
+                elif curr_key != 'animal_id':
+                    logger.info('updating screening key {}'.format(curr_key))
+                    setattr(curr_record, curr_key, screening_field_dict[curr_key])
 
-        ## show barcoding records associated with the screening record
-        logger.info('*** show screening reports related to this barcoding report')
-        logger.info(airtable_models.Georgia_screening.objects.filter(barcoding_record__animal_id=screening_field_dict['animal_id']))
+            for field in screening_keys:
+                logger.info('screening field {0}: {1}'.format(field, getattr(curr_record, field)))
 
-        instance = airtable_models.Georgia_screening.objects.all()
-        logger.info(dir(instance))
+            ## show barcoding records associated with the screening record
+            logger.info('*** show screening reports related to this barcoding report')
+            logger.info(airtable_models.Georgia_screening.objects.filter(barcoding_record__animal_id=screening_field_dict['animal_id']))
 
-'''
-        # Now create the barcoding table
-        current_animal_id = barcoding_field_dict['animal_id']
-        airtable_models.Georgia_barcoding.objects.create(
-            animal_id='{}'.format(current_animal_id),
-            cov_screening_data=airtable_models.Georgia_screening.objects.get(animal_id='{}'.format(current_animal_id))
-        )
+            instance = airtable_models.Georgia_screening.objects.all()
+            logger.info(dir(instance))
 
-        curr_record = airtable_models.Georgia_barcoding.objects.get(animal_id='{}'.format(barcoding_field_dict['animal_id']))
-
-        barcoding_keys = barcoding_field_dict.keys()
-
-        for curr_key in barcoding_keys:
-            if curr_key != 'animal_id' and curr_key != 'cov_screening_data':
-                logger.info('updating screening key {}'.format(curr_key))
-                setattr(curr_record, curr_key, barcoding_field_dict[curr_key])
-
-        for field in barcoding_keys:
-            if field == 'gel_photo_labeled':
-                logger.info('******  we got a gel photo file!  ******')
-            logger.info('barcoding field {0}: {1}'.format(field, getattr(curr_record, field)))
-
-        instance = airtable_models.Georgia_barcoding.objects.all()
-        logger.info(dir(instance))
-        # test saving and deleting a record
-        logger.info('*** test save/delete ***')
-
-        logger.info('*** end test save/delete ***')
-'''
+        if 'offset' in json_response_barcode:
+            logger.info('*** we have an offset so getting another batch ***')
+            # you need to be setting a new json_response_barcode here!!!
+            url = 'https://api.airtable.com/v0/appAEhvMc4tSS32ll/Host%20DNA%20Barcoding%20Data?view=Grid%20view&pageSize={0}'.format(page_size)
+            logger.info(url)
+            headers = {'content-type': 'application/json', 'Accept-Charset': 'UTF-8', 'Authorization': 'Bearer {}'.format(token)}
+            params = {'offset': '{}'.format(json_response_barcode['offset'])}
+            r_barcode = requests.get(url, headers=headers, params=params)
+            logger.info(r_barcode)
+            if r_barcode.status_code != 200:
+                raise ValueError('Error: got return code {0} for AirTable barcoding read'.format(r_barcode.status_code))
+            json_response_barcode = r_barcode.json()
+            logger.info(json_response_barcode)
+            if 'offset' in json_response_barcode:
+                logger.info(json_response_barcode['offset'])
+            logger.info(len(json_response_barcode['records']))
+            record_batch_size = len(json_response_barcode['records'])
+        else:
+            done = True
+    for bad_val in bad_screening_list:
+        logger.info('__{}__'.format(bad_val))
