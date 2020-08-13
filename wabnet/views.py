@@ -14,6 +14,19 @@ from ec5_tools.entity_keywords_model import EntityKeywords
 from .tables import SiteTable, BatTable, SecondaryDataTable
 import inspect
 from . import ec5_models
+from . import airtable_models
+import types
+from django.forms.models import model_to_dict
+
+import logging
+
+logger = logging.getLogger(__name__)
+hdlr = logging.FileHandler('./log.txt')
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+hdlr.setFormatter(formatter)
+logger.addHandler(hdlr)
+logger.setLevel(logging.INFO)
+
 
 child_models = {}
 for name, obj in inspect.getmembers(ec5_models):
@@ -373,6 +386,7 @@ def raise_if_user_cannot_access_bat(user, bat_id):
 
 @login_required
 def bat_view(request, bat_id):
+    logger.info('*** entering bat_view {} ***'.format(bat_id))
     raise_if_user_cannot_access_bat(request.user, bat_id)
     tables = []
     for model_name, child_model in child_models.items():
@@ -394,7 +408,23 @@ def bat_view(request, bat_id):
     secondary_data_table = SecondaryDataTable(objects)
     RequestConfig(request).configure(secondary_data_table)
     bat_family, bat_species = get_bat_species(bat_data)
-
+    ### FIX: this need to be generic so it doens't need to be updated
+    ###      every time they change the survey!!
+    logger.info(getattr(bat_data, 'x_63_ANIMAL_ID_eg_PK00_x'))
+    curr_animal_id = getattr(bat_data, 'x_63_ANIMAL_ID_eg_PK00_x')
+    barcoding_data = {}
+    if airtable_models.Georgia_barcoding.objects.filter(animal_id=curr_animal_id).count() > 0:
+        logger.info('*** found barcoding record for {}'.format(curr_animal_id))
+        barcoding_data = model_to_dict(airtable_models.Georgia_barcoding.objects.get(animal_id=curr_animal_id))
+    # FIX: may get back a list of screeing data
+    screening_data = {}
+    if airtable_models.Georgia_screening.objects.filter(animal_id=curr_animal_id).count() > 0:
+        logger.info('*** found screening record for {}'.format(curr_animal_id))
+        curr_obj = airtable_models.Georgia_screening.objects.get(animal_id='{}'.format(curr_animal_id))
+        for field in airtable_models.Georgia_screening._meta.get_fields():
+            logger.info('{0}: {1}'.format(field.name, getattr(curr_obj, field.name)))
+        logger.info(airtable_models.Georgia_screening.objects.get(animal_id=curr_animal_id))
+        screening_data = model_to_dict(airtable_models.Georgia_screening.objects.get(animal_id=curr_animal_id))
     exclude_fields = ['parent', 'title', 'created_at', 'created_by', 'uuid'] + [f.name for f in bat_family_fields]
     main_data = []
     for field in BatData._meta.get_fields():
@@ -407,4 +437,6 @@ def bat_view(request, bat_id):
         'bat_species': bat_species,
         'trapping_event_form': TrappingEventForm(instance=bat_data.parent),
         'tables': tables,
-        'secondary_data_table': secondary_data_table})
+        'secondary_data_table': secondary_data_table,
+        'barcoding_data': barcoding_data,
+        'screening_data': screening_data})

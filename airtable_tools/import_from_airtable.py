@@ -51,7 +51,12 @@ def import_from_airtable(airtable_models, only_new_data=False):
     airtable_media_backup_path = os.path.join(settings.MEDIA_ROOT, 'airtable_backup')
     try:
         import_from_airtable_transaction(airtable_models, only_new_data)
+        logger.info("*** test screening record ***")
+#        test_obj = airtable_models.Georgia_barcoding.objects.get(animal_id='GE0001')
+#        for field in airtable_models.Georgia_barcoding._meta.get_fields():
+#            logger.info('{0}: {1}'.format(field.name, getattr(test_obj, field.name)))
     except:
+        logger.info('*** import failed!  ***')
         if not only_new_data and os.path.exists(airtable_media_backup_path):
             shutil.move(airtable_media_backup_path, airtable_media_path)
         raise
@@ -131,6 +136,8 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
     record_batch_size = len(json_response_barcode['records'])
 
     bad_screening_list = []
+    animal_id_barcoding_list = []
+    animal_id_screening_list = []
 
     done = False
     while not done:
@@ -142,6 +149,11 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
             # read in barcoding data
             logger.info('****  reading in barcoding data   ****')
             animal_id = json_response_barcode['records'][idx_records]['fields']['Unique ANIMAL ID']
+            if animal_id in animal_id_barcoding_list:
+                raise ValueError('Error: duplicate animal_id {0} in barcoding import'.format(animal_id))
+            else:
+                animal_id_barcoding_list.append(animal_id)
+
             logger.info(animal_id)
             cov_screening_data_id = json_response_barcode['records'][idx_records]['fields']['CoV Screening Data']
             logger.info(cov_screening_data_id)
@@ -201,6 +213,12 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
             #airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'airtable')
             logger.info('****  reading in screening data   ****')
             # FIX: screening id is a list!! must be able associate many screening tables with barcode table
+            #      Actually, after conversation with Kendra, this won't happen so warn or error on multiple
+            if len(cov_screening_data_id) > 1:
+                ## FIX: this should probably raise and error
+                logger.info("*** Error: we got multiple cov_screening_data_ids back ***")
+
+
             url = 'https://api.airtable.com/v0/appAEhvMc4tSS32ll/CoV%20Screening%20Data/{}'.format(cov_screening_data_id[0])
             r_screening = requests.get(url, headers=headers)
             logger.info(r_screening)
@@ -218,6 +236,16 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                     logger.info('*** Error: got \'None\' for short_var_name = {0}  {1}'.format(short_var_name, field))
                 else:
                     screening_field_dict[short_var_name] = json_response_screening['fields'][field]
+                    if short_var_name == 'animal_id':
+                        logger.info('*** checking screening animal_id for dups ***')
+                        logger.info('test screening animal_id = __{}__'.format(screening_field_dict['animal_id']))
+                        if screening_field_dict['animal_id'] in animal_id_screening_list:
+                            logger.info('Error: already have animal_id {} in import!!'.format(screening_field_dict['animal_id']))
+                            raise ValueError('Error: duplicate animal_id {0} in screening import!'.format(screeing_field_dict['animal_id']))
+                        else:
+                            logger.info('Animal_id is new so proceeding')
+                            animal_id_screening_list.append(screening_field_dict['animal_id'])
+
             for key,val in screening_field_dict.items():
                 logger.info('{0}: {1}'.format(key, val))
 
@@ -226,6 +254,9 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                 logger.info("Error: didn't find associated screening record for animal_id = {}".format(screening_field_dict['animal_id']))
                 bad_screening_list.append(screening_field_dict['animal_id'])
                 continue
+            elif airtable_models.Georgia_barcoding.objects.filter(animal_id='{}'.format(screening_field_dict['animal_id'])).count() > 1:
+                logger.info("*** Error: got multiple records back for animal_id = {}".format(screening_field_dict['animal_id']))
+                ## Fix: this should raise an error if we're not going to handle it
 
             # create screening table(s)
             screening_keys = screening_field_dict.keys()
@@ -250,8 +281,8 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                                     'raw_cov_sequence_ab1', 'raw_cov_sequence_pdf']
                 if curr_key in array_field_list:
                     # FIX: this is a list of dictionaries!!!
-                    # FIX: should append timestamp to filename
-                    # FIX: need to get thumbnails for images if available
+                    # FIX: should append timestamp to filename?
+                    # FIX: get thumbnails for images if available
                     for idx_file_list in range(len(screening_field_dict[curr_key])):
                         targ_url = screening_field_dict[curr_key][idx_file_list]['url']
                         targ_filename = screening_field_dict[curr_key][idx_file_list]['filename']
@@ -261,6 +292,7 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                 elif curr_key != 'animal_id':
                     logger.info('updating screening key {}'.format(curr_key))
                     setattr(curr_record, curr_key, screening_field_dict[curr_key])
+            curr_record.save()
 
             for field in screening_keys:
                 logger.info('screening field {0}: {1}'.format(field, getattr(curr_record, field)))
@@ -291,5 +323,8 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
             record_batch_size = len(json_response_barcode['records'])
         else:
             done = True
+
+    if len(bad_screening_list) > 0:
+        logger.info('*** list of missing screening records ***')
     for bad_val in bad_screening_list:
         logger.info('__{}__'.format(bad_val))

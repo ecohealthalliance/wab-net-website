@@ -40,7 +40,7 @@ class Georgia_barcoding(models.Model):
     gel_photo_labeled = models.TextField(verbose_name='Gel photo - labeled')
     date_sequenced = models.DateTimeField(verbose_name='Date of sequencing', null=True)
     sequencing_results = models.TextField(verbose_name='Sequencing results')
-    sequencing_results_other = models.TextField(verbose_name='Sequencing results - if Other')
+    sequencing_results_other = models.TextField(verbose_name='Sequencing results - if "Other"')
     sequencing_notes = models.TextField(verbose_name='Sequencing notes')
     #raw_host_sequence_txt = models.FileField(upload_to='airtable_georgia/', verbose_name='Raw host sequence - .txt files')
     raw_host_sequence_txt = models.TextField(verbose_name='Raw host sequence - .txt files')
@@ -66,8 +66,8 @@ class Georgia_barcoding(models.Model):
                 curr_verbose_name = getattr(f, 'verbose_name')
                 if curr_verbose_name == verbose_name:
                     return getattr(f, 'name')
-        logger.info('Error: airtable_modes.py: get_name_from_verbose():verbose_name {} not found!!'.format(verbose_name))
-        raise ValueError('airtable_models.py:Georgia_barcoding():verbose name {} not found'.format(verbose_name))
+        logger.info('Error: airtable_modes.py: get_name_from_verbose():verbose_name __{}__ not found!!'.format(verbose_name))
+        raise ValueError('airtable_models.py:Georgia_barcoding():verbose name __{}__ not found'.format(verbose_name))
 
 
 class Georgia_screening(models.Model):
@@ -100,7 +100,7 @@ class Georgia_screening(models.Model):
     lab_performing_sequencing = models.TextField(verbose_name='Laboratory performing sequencing')
     sequencer_model = models.TextField(verbose_name='Sequencer model')
     confirmation_test_results = models.TextField(verbose_name='Confirmation test result')
-    confirmation_test_results_other = models.TextField(verbose_name='Confirmation test result - if Other')
+    confirmation_test_results_other = models.TextField(verbose_name='Confirmation test result - if "Other"')
     confirmation_test_notes = models.TextField(verbose_name='Notes on confirmation tests')
     #raw_cov_sequence_txt = models.FileField(upload_to='airtable_georgia/', verbose_name='Raw CoV sequence - .txt files')
     raw_cov_sequence_txt = models.TextField(verbose_name='Raw CoV sequence - .txt files')
@@ -125,5 +125,5 @@ class Georgia_screening(models.Model):
                 if curr_verbose_name == verbose_name:
                     return getattr(f, 'name')
         # return None if verbose_name not found
-        logger.info('Error: airtable_modes.py: get_name_from_verbose(): verbose_name {} not found!!'.format(verbose_name))
-        raise ValueError('airtable_models.py:Georgia_screening():verbose name {} not found'.format(verbose_name))
+        logger.info('Error: airtable_modes.py: get_name_from_verbose(): verbose_name __{}__ not found!!'.format(verbose_name))
+        raise ValueError('airtable_models.py:Georgia_screening():verbose name __{}__ not found'.format(verbose_name))
