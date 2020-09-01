@@ -386,7 +386,6 @@ def raise_if_user_cannot_access_bat(user, bat_id):
 
 @login_required
 def bat_view(request, bat_id):
-    logger.info('*** entering bat_view {} ***'.format(bat_id))
     raise_if_user_cannot_access_bat(request.user, bat_id)
     tables = []
     for model_name, child_model in child_models.items():
@@ -413,24 +412,86 @@ def bat_view(request, bat_id):
     logger.info(getattr(bat_data, 'x_63_ANIMAL_ID_eg_PK00_x'))
     curr_animal_id = getattr(bat_data, 'x_63_ANIMAL_ID_eg_PK00_x')
     barcoding_data = {}
+    barcoding_filename_list_dict = {}
+    special_barcoding_keys_short = ['gel_photo_labeled', 'raw_host_sequence_txt',
+                                    'raw_cov_sequence_ab1', 'raw_cov_sequence_pdf',
+                                    'aligned_host_sequence_submitted_to_blast',
+                                    'screenshot_top_5_BLAST_matches']
     if airtable_models.Georgia_barcoding.objects.filter(animal_id=curr_animal_id).count() > 0:
-        logger.info('*** found barcoding record for {}'.format(curr_animal_id))
         barcoding_data = model_to_dict(airtable_models.Georgia_barcoding.objects.get(animal_id=curr_animal_id))
+
+        for special_key in special_barcoding_keys_short:
+            if special_key in barcoding_data.keys() and barcoding_data[special_key]:
+                file_data = json.loads(barcoding_data[special_key].replace("'", '"'))
+                tmp_filename_list = []
+                for curr_file_dict in file_data:
+                    tmp_filename_list.append(curr_file_dict['filename'])
+                barcoding_filename_list_dict[special_key] = tmp_filename_list
+
     # FIX: may get back a list of screeing data
     screening_data = {}
+    screening_filename_list_dict = {}
+    special_screening_keys_short = ['raw_cov_sequence_ab1', 'raw_cov_sequence_txt',
+                                    'raw_cov_sequence_pdf', 'screenshot_top_5_BLAST_matches',
+                                    'aligned_cov_sequence_submitted_to_blast',
+                                    'gel_photo_labeled']
     if airtable_models.Georgia_screening.objects.filter(animal_id=curr_animal_id).count() > 0:
-        logger.info('*** found screening record for {}'.format(curr_animal_id))
         curr_obj = airtable_models.Georgia_screening.objects.get(animal_id='{}'.format(curr_animal_id))
-        for field in airtable_models.Georgia_screening._meta.get_fields():
-            logger.info('{0}: {1}'.format(field.name, getattr(curr_obj, field.name)))
-        logger.info(airtable_models.Georgia_screening.objects.get(animal_id=curr_animal_id))
         screening_data = model_to_dict(airtable_models.Georgia_screening.objects.get(animal_id=curr_animal_id))
+        # change dictionary keys to verbose string
+        '''  retrieve from separate class (not currently used)
+        raw_cov_sequence_ab1_data = airtable_models.RawCovSequenceAb1.objects.filter(screening_parent__animal_id=curr_animal_id)
+        if len(raw_cov_sequence_ab1_data) > 0:
+            raw_cov_sequence_ab1_data = list(raw_cov_sequence_ab1_data.values())
+        '''
+
+        for special_key in special_screening_keys_short:
+            if special_key in screening_data.keys() and screening_data[special_key]:
+                file_data = json.loads(screening_data[special_key].replace("'", '"'))
+                tmp_filename_list = []
+                for curr_file_dict in file_data:
+                    tmp_filename_list.append(curr_file_dict['filename'])
+                screening_filename_list_dict[special_key] = tmp_filename_list
+
+    ## convert short key names to verbose - screening
+    mod_key_list = []
+    for key,value in screening_data.items():
+        verbose_name = airtable_models.Georgia_screening.get_verbose_from_name(key)
+        if verbose_name != '':
+            mod_key_list.append((key,verbose_name))
+    for tup in mod_key_list:
+        screening_data[tup[1]] = screening_data[tup[0]]
+        del screening_data[tup[0]]
+
+    ## convert short key names to verbose - barcoding
+    mod_key_list = []
+    for key,value in barcoding_data.items():
+        verbose_name = airtable_models.Georgia_barcoding.get_verbose_from_name(key)
+        if verbose_name != '':
+            mod_key_list.append((key,verbose_name))
+    for tup in mod_key_list:
+        barcoding_data[tup[1]] = barcoding_data[tup[0]]
+        del barcoding_data[tup[0]]
+
     exclude_fields = ['parent', 'title', 'created_at', 'created_by', 'uuid'] + [f.name for f in bat_family_fields]
     main_data = []
     for field in BatData._meta.get_fields():
         if field.is_relation or field.name in exclude_fields:
             continue
         main_data.append((field, getattr(bat_data, field.name),))
+
+    raw_cov_sequence_ab1_filename = "foo"
+    base_url = '/media/airtable_georgia/'
+    special_screening_keys = ['Gel photo - labeled', 'Raw CoV sequence - .txt files',
+                              'Raw CoV sequence - .ab1 files',
+                              'Raw CoV sequence - .pdf files',
+                              'Aligned CoV sequence (.fasta file) submitted to BLAST',
+                              'Screenshot photo of top 5 BLAST matches']
+    special_barcoding_keys = ['Gel photo - labeled', 'Raw host sequence - .txt files',
+                              'Raw host sequence - .ab1 files',
+                              'Raw host sequence - .pdf files',
+                              'Aligned host sequence (.fasta file) submitted to BLAST',
+                              'Screenshot photo of top 5 BLAST matches']
     return render(request, 'bat.html', {
         'main_data': main_data,
         'bat_data': bat_data,
@@ -439,4 +500,9 @@ def bat_view(request, bat_id):
         'tables': tables,
         'secondary_data_table': secondary_data_table,
         'barcoding_data': barcoding_data,
-        'screening_data': screening_data})
+        'screening_data': screening_data,
+        'base_url': base_url,
+        'screening_filename_list_dict': screening_filename_list_dict,
+        'barcoding_filename_list_dict': barcoding_filename_list_dict,
+        'special_screening_keys': special_screening_keys,
+        'special_barcoding_keys': special_barcoding_keys})

@@ -69,6 +69,14 @@ class Georgia_barcoding(models.Model):
         logger.info('Error: airtable_modes.py: get_name_from_verbose():verbose_name __{}__ not found!!'.format(verbose_name))
         raise ValueError('airtable_models.py:Georgia_barcoding():verbose name __{}__ not found'.format(verbose_name))
 
+    def get_verbose_from_name(var_name):
+        verbose_name = ''
+        for f in Georgia_barcoding._meta.get_fields():
+            if f.name.split('.')[-1] == var_name:
+                if hasattr(f, 'verbose_name'):
+                    verbose_name = getattr(f, 'verbose_name')
+        return verbose_name
+
 
 class Georgia_screening(models.Model):
     animal_id = models.TextField(verbose_name='Unique ANIMAL ID')
@@ -108,8 +116,8 @@ class Georgia_screening(models.Model):
     raw_cov_sequence_ab1 = models.TextField(verbose_name='Raw CoV sequence - .ab1 files')
     #raw_cov_sequence_pdf = models.FileField(upload_to='airtable_georgia/', verbose_name='Raw CoV sequence - .pdf files')
     raw_cov_sequence_pdf = models.TextField(verbose_name='Raw CoV sequence - .pdf files')
-    #aligned_cov_seuqence_submitted_to_blast = models.ForeignKey(Georgia_aligned_cov_seuqence_submitted_to_blast, on_delete=models.CASCADE, verbose_name='Aligned CoV sequence (.fasta file) submitted to BLAST', null=True)
-    aligned_cov_seuqence_submitted_to_blast = models.TextField(verbose_name='Aligned CoV sequence (.fasta file) submitted to BLAST', null=True)
+    #aligned_cov_sequence_submitted_to_blast = models.ForeignKey(Georgia_aligned_cov_seuqence_submitted_to_blast, on_delete=models.CASCADE, verbose_name='Aligned CoV sequence (.fasta file) submitted to BLAST', null=True)
+    aligned_cov_sequence_submitted_to_blast = models.TextField(verbose_name='Aligned CoV sequence (.fasta file) submitted to BLAST', null=True)
     coronavirus_identified_blast = models.TextField(verbose_name='Coronavirus identified by BLAST')
     query_cover_top_BLAST_match = models.FloatField(verbose_name='Query cover (%) for top BLAST match', null=True)
     percent_identity_top_BLAST_match = models.FloatField(verbose_name='Percent identity (%) for top BLAST match', null=True)
@@ -127,3 +135,19 @@ class Georgia_screening(models.Model):
         # return None if verbose_name not found
         logger.info('Error: airtable_modes.py: get_name_from_verbose(): verbose_name __{}__ not found!!'.format(verbose_name))
         raise ValueError('airtable_models.py:Georgia_screening():verbose name __{}__ not found'.format(verbose_name))
+
+    def get_verbose_from_name(var_name):
+        verbose_name = ''
+        for f in Georgia_screening._meta.get_fields():
+            if f.name.split('.')[-1] == var_name:
+                if hasattr(f, 'verbose_name'):
+                    verbose_name = getattr(f, 'verbose_name')
+        return verbose_name
+
+class RawCovSequenceAb1(models.Model):
+    airtable_id = models.TextField()
+    url = models.TextField()
+    filename = models.TextField()
+    size = models.PositiveIntegerField()
+    type = models.TextField()
+    screening_parent = models.ForeignKey(Georgia_screening, on_delete=models.CASCADE)

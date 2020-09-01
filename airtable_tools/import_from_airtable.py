@@ -121,6 +121,7 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
     airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'airtable_georgia/')
 
     page_size = 100
+    #url = 'https://api.airtable.com/v0/appAEhvMc4tSS32ll/Host%20DNA%20Barcoding%20Data?view=Grid%20view&maxRecords=15&pageSize={}'.format(page_size)
     url = 'https://api.airtable.com/v0/appAEhvMc4tSS32ll/Host%20DNA%20Barcoding%20Data?view=Grid%20view&pageSize={}'.format(page_size)
     logger.info(url)
     headers = {'content-type': 'application/json', 'Accept-Charset': 'UTF-8', 'Authorization': 'Bearer {}'.format(token)}
@@ -283,12 +284,28 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                     # FIX: this is a list of dictionaries!!!
                     # FIX: should append timestamp to filename?
                     # FIX: get thumbnails for images if available
+                    logger.info('<--->len of screening_field_dict: {}'.format(len(screening_field_dict[curr_key])))
+                    curr_list = []
                     for idx_file_list in range(len(screening_field_dict[curr_key])):
                         targ_url = screening_field_dict[curr_key][idx_file_list]['url']
                         targ_filename = screening_field_dict[curr_key][idx_file_list]['filename']
                         logger.info('*** aligned cov blast url: {} ***'.format(targ_url))
                         urllib.request.urlretrieve(targ_url, airtable_media_path + targ_filename)
-                        setattr(curr_record, curr_key, screening_field_dict[curr_key][idx_file_list])
+                        logger.info('****  setattr for {}'.format(curr_key))
+                        logger.info(screening_field_dict[curr_key][idx_file_list])
+#                        setattr(curr_record, curr_key, screening_field_dict[curr_key][idx_file_list])
+                        curr_list.append(screening_field_dict[curr_key][idx_file_list])
+                        ## create data objects for each file
+                        if curr_key == 'raw_cov_sequence_ab1':
+                            airtable_models.RawCovSequenceAb1.objects.create(
+                                airtable_id = '{}'.format(screening_field_dict[curr_key][idx_file_list]['id']),
+                                url = '{}'.format(screening_field_dict[curr_key][idx_file_list]['url']),
+                                filename = '{}'.format(screening_field_dict[curr_key][idx_file_list]['filename']),
+                                size = screening_field_dict[curr_key][idx_file_list]['size'],
+                                type = '{}'.format(screening_field_dict[curr_key][idx_file_list]['type']),
+                                screening_parent=airtable_models.Georgia_screening.objects.get(animal_id='{}'.format(screening_field_dict['animal_id']))
+                            )
+                        setattr(curr_record, curr_key, curr_list)
                 elif curr_key != 'animal_id':
                     logger.info('updating screening key {}'.format(curr_key))
                     setattr(curr_record, curr_key, screening_field_dict[curr_key])
