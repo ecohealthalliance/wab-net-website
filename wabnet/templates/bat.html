@@ -126,6 +126,12 @@
                                             <li class="list-group-item" style="border: none"><img src="{{ base_url }}{{ fn }}"></li>
                                         {% endfor %}
                                     </ul>
+                                {% elif key == 'Screenshot photo of top 5 BLAST matches' %}
+                                    <ul class="list-group">
+                                        {% for fn in screening_filename_list_dict.screenshot_top_5_BLAST_matches %}
+                                            <li class="list-group-item" style="border: none"><img src="{{ base_url }}{{ fn }}"></li>
+                                        {% endfor %}
+                                    </ul>
                                 {% endif %}
                             </dd>
                         {% else %}
