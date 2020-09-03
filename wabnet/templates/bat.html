@@ -78,9 +78,52 @@
             <div class="panel-heading">Barcoding Data {{ barcoding_data.animal_id }}</div>
             <dl class="panel-body">
                 {% for key,val in barcoding_data.items %}
-                    {% if key != 'animal_id' and val != '' and val != None and key != 'id' and key != 'cov_screening_data' %}
-                        <dt>{{ key }}</dt>
-                        <dd>{{ val }}</dd>
+                    {% if val != '' and val != None and key != 'ID' and key != 'CoV Screening Data' %}
+                        {% if key in special_screening_keys %}
+                            <dt>{{ key }}</dt>
+                            <dd>
+                                {% if key == 'Raw CoV sequence - .ab1 files' %}
+                                    <ul class="list-group">
+                                        {% for fn in screening_filename_list_dict.raw_cov_sequence_ab1 %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'Raw CoV sequence - .txt files' %}
+                                    <ul class="list-group">
+                                        {% for fn in screening_filename_list_dict.raw_cov_sequence_txt %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'Raw CoV sequence - .pdf files' %}
+                                    <ul class="list-group">
+                                        {% for fn in screening_filename_list_dict.raw_cov_sequence_pdf %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'Aligned CoV sequence (.fasta file) submitted to BLAST' %}
+                                    <ul class="list-group">
+                                        {% for fn in screening_filename_list_dict.aligned_cov_sequence_submitted_to_blast %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'Gel photo - labeled' %}
+                                    <ul class="list-group">
+                                        {% for fn in screening_filename_list_dict.gel_photo_labeled %}
+                                            <li class="list-group-item" style="border: none"><img src="{{ base_url }}{{ fn }}"></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'Screenshot photo of top 5 BLAST matches' %}
+                                    <ul class="list-group">
+                                        {% for fn in screening_filename_list_dict.screenshot_top_5_BLAST_matches %}
+                                            <li class="list-group-item" style="border: none"><img src="{{ base_url }}{{ fn }}"></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </dd>
+                        {% else %}
+                            <dt>{{ key }}</dt>
+                            <dd>{{ val }}</dd>
+                        {% endif %}
                     {% endif %}
                 {% endfor %}
             </dl>
