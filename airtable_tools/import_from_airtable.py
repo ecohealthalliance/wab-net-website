@@ -44,6 +44,21 @@ def throttled_request_get(*args, **kwargs):
     last_request_time = datetime.datetime.now()
     return requests.get(*args, **kwargs)
 
+def clear_all_airtable(airtable_models):
+    all_screening_records = airtable_models.Georgia_screening.objects.all()
+    all_screening_records.delete()
+    all_barcoding_records = airtable_models.Georgia_barcoding.objects.all()
+    all_barcoding_records.delete()
+    all_RawCovSequenceAb1_records = airtable_models.RawCovSequenceAb1.objects.all()
+    all_RawCovSequenceAb1_records.delete()
+
+    airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'airtable_georgia')
+    for filename in os.listdir(airtable_media_path):
+        full_path = os.path.join(airtable_media_path, filename)
+        os.unlink(full_path)
+
+    return
+
 def import_from_airtable(airtable_models, only_new_data=False):
     # Rolling back the database does not restore the EC5 media directory,
     # so exception handling is used here to handle the restoration.
@@ -51,12 +66,7 @@ def import_from_airtable(airtable_models, only_new_data=False):
     airtable_media_backup_path = os.path.join(settings.MEDIA_ROOT, 'airtable_backup')
     try:
         import_from_airtable_transaction(airtable_models, only_new_data)
-        logger.info("*** test screening record ***")
-#        test_obj = airtable_models.Georgia_barcoding.objects.get(animal_id='GE0001')
-#        for field in airtable_models.Georgia_barcoding._meta.get_fields():
-#            logger.info('{0}: {1}'.format(field.name, getattr(test_obj, field.name)))
     except:
-        logger.info('*** import failed!  ***')
         if not only_new_data and os.path.exists(airtable_media_backup_path):
             shutil.move(airtable_media_backup_path, airtable_media_path)
         raise
