@@ -45,9 +45,9 @@ def throttled_request_get(*args, **kwargs):
     return requests.get(*args, **kwargs)
 
 def clear_all_airtable(airtable_models):
-    all_screening_records = airtable_models.Georgia_screening.objects.all()
+    all_screening_records = airtable_models.Screening.objects.all()
     all_screening_records.delete()
-    all_barcoding_records = airtable_models.Georgia_barcoding.objects.all()
+    all_barcoding_records = airtable_models.Barcoding.objects.all()
     all_barcoding_records.delete()
     all_RawCovSequenceAb1_records = airtable_models.RawCovSequenceAb1.objects.all()
     all_RawCovSequenceAb1_records.delete()
@@ -62,8 +62,8 @@ def clear_all_airtable(airtable_models):
 def import_from_airtable(airtable_models, only_new_data=False):
     # Rolling back the database does not restore the EC5 media directory,
     # so exception handling is used here to handle the restoration.
-    airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'airtable_georgia')
-    airtable_media_backup_path = os.path.join(settings.MEDIA_ROOT, 'airtable_georgia_backup')
+    airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'airtable')
+    airtable_media_backup_path = os.path.join(settings.MEDIA_ROOT, 'airtable_backup')
     # move media files to backup dir
     if not only_new_data and os.path.exists(airtable_media_backup_path):
         for mv_fn in os.listdir(airtable_media_path):
@@ -95,26 +95,6 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
 
     token = settings.AIRTABLE_API_KEY
 
-    ###  FIX: backup procedure will have to be changed
-    '''
-    if not only_new_data:
-        # Disable foreign key constraint checking because deleting the old data
-        # will temporarily break referential integrity until it is re-imported.
-        def disable_foreign_keys(sender, connection, **kwargs):
-            if connection.vendor == 'sqlite':
-                cursor = connection.cursor()
-                cursor.execute('PRAGMA foreign_keys = OFF;')
-        connection_created.connect(disable_foreign_keys)
-
-        # Move EC5 media to backup in preparation for deletion
-        # when the transaction succeeds.
-        ec5_media_path = os.path.join(settings.MEDIA_ROOT, 'ec5')
-        if os.path.exists(ec5_media_path):
-            shutil.move(ec5_media_path, os.path.join(settings.MEDIA_ROOT, 'ec5backup'))
-        # Delete all previously imported data
-        root_model.objects.all().delete()
-    '''
-
     ###  Process:
     ###  1) get barcoding data from airtable
     ###  2) get all associated screening data (could be a list of tables)
@@ -122,7 +102,7 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
     ###  4) create barcoding record in django for barcoding record from airtable
     ###  5) repeat with next barcoding record from airtable
 
-    airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'airtable_georgia/')
+    airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'airtable/')
 
     page_size = 100
     #url = 'https://api.airtable.com/v0/appAEhvMc4tSS32ll/Host%20DNA%20Barcoding%20Data?view=Grid%20view&maxRecords=15&pageSize={}'.format(page_size)
@@ -165,18 +145,18 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
 
             barcoding_field_dict = {}
             for field in json_response_barcode['records'][idx_records]['fields']:
-                short_var_name = airtable_models.Georgia_barcoding.get_name_from_verbose(field)
+                short_var_name = airtable_models.Barcoding.get_name_from_verbose(field)
                 barcoding_field_dict[short_var_name] = json_response_barcode['records'][idx_records]['fields'][field]
 
             # Now create the barcoding table
             logger.info('*** creating barcoding record {}'.format(barcoding_field_dict['animal_id']))
-            create_return_val = airtable_models.Georgia_barcoding.objects.create(
+            create_return_val = airtable_models.Barcoding.objects.create(
                 animal_id='{}'.format(barcoding_field_dict['animal_id']),
                 cov_screening_data='{}'.format(barcoding_field_dict['cov_screening_data'])
             )
             logger.info(create_return_val)
 
-            curr_record = airtable_models.Georgia_barcoding.objects.get(animal_id='{}'.format(barcoding_field_dict['animal_id']))
+            curr_record = airtable_models.Barcoding.objects.get(animal_id='{}'.format(barcoding_field_dict['animal_id']))
 
             barcoding_keys = barcoding_field_dict.keys()
 
@@ -210,7 +190,7 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                     logger.info('******  we got a gel photo file!  ******')
                 logger.info('barcoding field {0}: {1}'.format(field, getattr(curr_record, field)))
 
-            instance = airtable_models.Georgia_barcoding.objects.all()
+            instance = airtable_models.Barcoding.objects.all()
             logger.info(dir(instance))
 
 
@@ -234,7 +214,7 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
             logger.info(json_response_screening)
             screening_field_dict = {}
             for field in json_response_screening['fields']:
-                short_var_name = airtable_models.Georgia_screening.get_name_from_verbose(field)
+                short_var_name = airtable_models.Screening.get_name_from_verbose(field)
                 # FIX: validation: we want to check the two inputs of animal name to make sure
                 #      they're the same
                 if short_var_name == 'None':
@@ -255,24 +235,24 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                 logger.info('{0}: {1}'.format(key, val))
 
             ## check if screening record exists before trying to make record
-            if airtable_models.Georgia_barcoding.objects.filter(animal_id='{}'.format(screening_field_dict['animal_id'])).count() == 0:
+            if airtable_models.Barcoding.objects.filter(animal_id='{}'.format(screening_field_dict['animal_id'])).count() == 0:
                 logger.info("Error: didn't find associated screening record for animal_id = {}".format(screening_field_dict['animal_id']))
                 bad_screening_list.append(screening_field_dict['animal_id'])
                 continue
-            elif airtable_models.Georgia_barcoding.objects.filter(animal_id='{}'.format(screening_field_dict['animal_id'])).count() > 1:
+            elif airtable_models.Barcoding.objects.filter(animal_id='{}'.format(screening_field_dict['animal_id'])).count() > 1:
                 logger.info("*** Error: got multiple records back for animal_id = {}".format(screening_field_dict['animal_id']))
                 ## Fix: this should raise an error if we're not going to handle it
 
             # create screening table(s)
             screening_keys = screening_field_dict.keys()
             logger.info('creating screening record with animal_id = ##{}##'.format(screening_field_dict['animal_id']))
-            airtable_models.Georgia_screening.objects.create(
+            airtable_models.Screening.objects.create(
                 animal_id = '{}'.format(screening_field_dict['animal_id']),
-                barcoding_record=airtable_models.Georgia_barcoding.objects.get(animal_id='{}'.format(screening_field_dict['animal_id']))
+                barcoding_record=airtable_models.Barcoding.objects.get(animal_id='{}'.format(screening_field_dict['animal_id']))
             )
 
             logger.info('** curr screening animal_id = {}'.format(screening_field_dict['animal_id']))
-            curr_record = airtable_models.Georgia_screening.objects.get(animal_id='{}'.format(screening_field_dict['animal_id']))
+            curr_record = airtable_models.Screening.objects.get(animal_id='{}'.format(screening_field_dict['animal_id']))
             logger.info(dir(curr_record))
 
             #airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'airtable_georgia/')
@@ -307,7 +287,7 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                                 filename = '{}'.format(screening_field_dict[curr_key][idx_file_list]['filename']),
                                 size = screening_field_dict[curr_key][idx_file_list]['size'],
                                 type = '{}'.format(screening_field_dict[curr_key][idx_file_list]['type']),
-                                screening_parent=airtable_models.Georgia_screening.objects.get(animal_id='{}'.format(screening_field_dict['animal_id']))
+                                screening_parent=airtable_models.Screening.objects.get(animal_id='{}'.format(screening_field_dict['animal_id']))
                             )
                         setattr(curr_record, curr_key, curr_list)
                 elif curr_key != 'animal_id':
@@ -320,9 +300,9 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
 
             ## show barcoding records associated with the screening record
             logger.info('*** show screening reports related to this barcoding report')
-            logger.info(airtable_models.Georgia_screening.objects.filter(barcoding_record__animal_id=screening_field_dict['animal_id']))
+            logger.info(airtable_models.Screening.objects.filter(barcoding_record__animal_id=screening_field_dict['animal_id']))
 
-            instance = airtable_models.Georgia_screening.objects.all()
+            instance = airtable_models.Screening.objects.all()
             logger.info(dir(instance))
 
         if 'offset' in json_response_barcode:

@@ -417,8 +417,8 @@ def bat_view(request, bat_id):
                                     'raw_cov_sequence_ab1', 'raw_cov_sequence_pdf',
                                     'aligned_host_sequence_submitted_to_blast',
                                     'screenshot_top_5_BLAST_matches']
-    if airtable_models.Georgia_barcoding.objects.filter(animal_id=curr_animal_id).count() > 0:
-        barcoding_data = model_to_dict(airtable_models.Georgia_barcoding.objects.get(animal_id=curr_animal_id))
+    if airtable_models.Barcoding.objects.filter(animal_id=curr_animal_id).count() > 0:
+        barcoding_data = model_to_dict(airtable_models.Barcoding.objects.get(animal_id=curr_animal_id))
 
         for special_key in special_barcoding_keys_short:
             if special_key in barcoding_data.keys() and barcoding_data[special_key]:
@@ -435,9 +435,9 @@ def bat_view(request, bat_id):
                                     'raw_cov_sequence_pdf', 'screenshot_top_5_BLAST_matches',
                                     'aligned_cov_sequence_submitted_to_blast',
                                     'gel_photo_labeled']
-    if airtable_models.Georgia_screening.objects.filter(animal_id=curr_animal_id).count() > 0:
-        curr_obj = airtable_models.Georgia_screening.objects.get(animal_id='{}'.format(curr_animal_id))
-        screening_data = model_to_dict(airtable_models.Georgia_screening.objects.get(animal_id=curr_animal_id))
+    if airtable_models.Screening.objects.filter(animal_id=curr_animal_id).count() > 0:
+        curr_obj = airtable_models.Screening.objects.get(animal_id='{}'.format(curr_animal_id))
+        screening_data = model_to_dict(airtable_models.Screening.objects.get(animal_id=curr_animal_id))
         # change dictionary keys to verbose string
         '''  retrieve from separate class (not currently used)
         raw_cov_sequence_ab1_data = airtable_models.RawCovSequenceAb1.objects.filter(screening_parent__animal_id=curr_animal_id)
@@ -456,7 +456,7 @@ def bat_view(request, bat_id):
     ## convert short key names to verbose - screening
     mod_key_list = []
     for key,value in screening_data.items():
-        verbose_name = airtable_models.Georgia_screening.get_verbose_from_name(key)
+        verbose_name = airtable_models.Screening.get_verbose_from_name(key)
         if verbose_name != '':
             mod_key_list.append((key,verbose_name))
     for tup in mod_key_list:
@@ -466,7 +466,7 @@ def bat_view(request, bat_id):
     ## convert short key names to verbose - barcoding
     mod_key_list = []
     for key,value in barcoding_data.items():
-        verbose_name = airtable_models.Georgia_barcoding.get_verbose_from_name(key)
+        verbose_name = airtable_models.Barcoding.get_verbose_from_name(key)
         if verbose_name != '':
             mod_key_list.append((key,verbose_name))
     for tup in mod_key_list:
@@ -481,7 +481,7 @@ def bat_view(request, bat_id):
         main_data.append((field, getattr(bat_data, field.name),))
 
     raw_cov_sequence_ab1_filename = "foo"
-    base_url = '/media/airtable_georgia/'
+    base_url = '/media/airtable/'
     special_screening_keys = ['Gel photo - labeled', 'Raw CoV sequence - .txt files',
                               'Raw CoV sequence - .ab1 files',
                               'Raw CoV sequence - .pdf files',
