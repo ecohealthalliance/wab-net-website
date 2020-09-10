@@ -52,54 +52,48 @@ def clear_all_airtable(airtable_models):
     all_RawCovSequenceAb1_records = airtable_models.RawCovSequenceAb1.objects.all()
     all_RawCovSequenceAb1_records.delete()
 
-    airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'airtable_georgia')
-    for filename in os.listdir(airtable_media_path):
-        full_path = os.path.join(airtable_media_path, filename)
-        os.unlink(full_path)
+    #airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'airtable_georgia')
+    #for filename in os.listdir(airtable_media_path):
+    #    full_path = os.path.join(airtable_media_path, filename)
+    #    os.unlink(full_path)
 
     return
 
 def import_from_airtable(airtable_models, only_new_data=False):
     # Rolling back the database does not restore the EC5 media directory,
     # so exception handling is used here to handle the restoration.
-    airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'airtable')
-    airtable_media_backup_path = os.path.join(settings.MEDIA_ROOT, 'airtable_backup')
+    airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'airtable_georgia')
+    airtable_media_backup_path = os.path.join(settings.MEDIA_ROOT, 'airtable_georgia_backup')
+    # move media files to backup dir
+    if not only_new_data and os.path.exists(airtable_media_backup_path):
+        for mv_fn in os.listdir(airtable_media_path):
+            path_from = os.path.join(airtable_media_path, mv_fn)
+            path_to = os.path.join(airtable_media_backup_path, mv_fn)
+            shutil.move(path_from, path_to)
+    # try importing
     try:
         import_from_airtable_transaction(airtable_models, only_new_data)
     except:
+        # import failed so move backed-up media back
         if not only_new_data and os.path.exists(airtable_media_backup_path):
-            shutil.move(airtable_media_backup_path, airtable_media_path)
+            #shutil.move(airtable_media_backup_path, airtable_media_path)
+            for mv_fn in os.listdir(airtable_media_backup_path):
+                path_to = os.path.join(airtable_media_path, mv_fn)
+                path_from = os.path.join(airtable_media_backup_path, mv_fn)
+                shutil.move(path_from, path_to)
         raise
     if not only_new_data:
         if os.path.exists(airtable_media_backup_path):
-            shutil.rmtree(airtable_media_backup_path)
+            # import succeeded, so remove backup files
+            for rm_fn in os.listdir(airtable_media_backup_path):
+                full_rm_path = os.path.join(airtable_media_backup_path, rm_fn)
+                os.unlink(full_rm_path)
 
-def refresh_ec5_token(ec5_client_id, ec5_secret_key, current_token = None):
-    # If we have no token, gives us a new token.
-    # If we have a token that's near expiration, give us a new one.
-    # Otherwise, keep the same token.
-    if current_token is not None and current_token["expiration_time"] > datetime.datetime.now():
-            return current_token
-    response = requests.post('https://five.epicollect.net/api/oauth/token', data={
-      'grant_type': 'client_credentials',
-      'client_id': ec5_client_id,
-      'client_secret': ec5_secret_key
-    })
-    response.raise_for_status()
-    token = response.json()
-    token["expiration_time"] = datetime.datetime.now() + datetime.timedelta(seconds = token["expires_in"] - 100)
-    return(token)
 
 @transaction.atomic
 def import_from_airtable_transaction(airtable_models, only_new_data):
 
     token = settings.AIRTABLE_API_KEY
-
-#    all_screening_records = airtable_models.Georgia_screening.objects.all()
-#    all_screening_records.delete()
-#    all_barcoding_records = airtable_models.Georgia_barcoding.objects.all()
-#    all_barcoding_records.delete()
-#    return
 
     ###  FIX: backup procedure will have to be changed
     '''
