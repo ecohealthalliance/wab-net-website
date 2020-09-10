@@ -186,7 +186,7 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                 #      Really, these should all be foreign keys onto new tables
                 array_field_list = ['gel_photo_labeled','raw_host_sequence_txt',
                                     'raw_host_sequence_ab1','raw_host_sequence_pdf',
-                                    'aligned_host_seuqence_submitted_to_blast',
+                                    'aligned_host_sequence_submitted_to_blast',
                                     'screenshot_top_5_BLAST_matches']
                 if curr_key in array_field_list:
                     # FIX: this is a list of dictionaries!!!
@@ -281,7 +281,7 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                 #      list doesn't need to be maintained
                 #      Really, these should all be foreign keys onto new tables
                 array_field_list = ['gel_photo_labeled', 'raw_cov_sequence_txt',
-                                    'aligned_cov_seuqence_submitted_to_blast',
+                                    'aligned_cov_sequence_submitted_to_blast',
                                     'screenshot_top_5_BLAST_matches',
                                     'raw_cov_sequence_ab1', 'raw_cov_sequence_pdf']
                 if curr_key in array_field_list:
