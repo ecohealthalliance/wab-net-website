@@ -34,6 +34,12 @@ for name, obj in inspect.getmembers(ec5_models):
         if hasattr(obj, 'parent'):
             child_models[name] = obj
 
+airtable_download_models = {}
+for name, obj in inspect.getmembers(airtable_models):
+    if inspect.isclass(obj) and issubclass(obj, models.Model):
+        if name == 'Barcoding' or name == 'Screening':
+            airtable_download_models[name] = obj
+
 bat_family_fields = [field
     for field in BatData._meta.get_fields()
     if isinstance(field, models.TextField) and field.verbose_name.startswith("Family:")]
@@ -199,9 +205,12 @@ def download_all_data(request):
     zipf = zipfile.ZipFile(zip_buffer, 'a')
     for model_name, child_model in list(child_models.items()) + [
         ('SiteData', SiteData),
-        ('SecondaryData', SecondaryData)]:
+        ('SecondaryData', SecondaryData)] + list(airtable_download_models.items()):
         class MyTable(django_tables2.Table):
-            name = child_model.name
+            if model_name == 'Barcoding' or model_name == 'Screening':
+                name = model_name
+            else:
+                name = child_model.name
             class Meta:
                 model = child_model
                 template_name = 'django_tables2/bootstrap.html'
