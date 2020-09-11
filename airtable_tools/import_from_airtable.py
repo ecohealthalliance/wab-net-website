@@ -296,7 +296,7 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                                 type = '{}'.format(screening_field_dict[curr_key][idx_file_list]['type']),
                                 screening_parent=airtable_models.Screening.objects.get(animal_id='{}'.format(screening_field_dict['animal_id']))
                             )
-                        setattr(curr_record, curr_key, curr_list)
+                    setattr(curr_record, curr_key, curr_list)
                 elif curr_key != 'animal_id':
                     logger.info('updating screening key {}'.format(curr_key))
                     setattr(curr_record, curr_key, screening_field_dict[curr_key])
