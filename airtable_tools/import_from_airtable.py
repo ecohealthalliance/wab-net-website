@@ -105,8 +105,10 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
     airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'airtable/')
 
     page_size = 100
+    airtable_ids = ['appAEhvMc4tSS32ll', 'appVb5vInUwnVTQKQ']
     #url = 'https://api.airtable.com/v0/appAEhvMc4tSS32ll/Host%20DNA%20Barcoding%20Data?view=Grid%20view&maxRecords=15&pageSize={}'.format(page_size)
-    url = 'https://api.airtable.com/v0/appAEhvMc4tSS32ll/Host%20DNA%20Barcoding%20Data?view=Grid%20view&pageSize={}'.format(page_size)
+    #url = 'https://api.airtable.com/v0/appAEhvMc4tSS32ll/Host%20DNA%20Barcoding%20Data?view=Grid%20view&pageSize={}'.format(page_size)
+    url = 'https://api.airtable.com/v0/{0}/Host%20DNA%20Barcoding%20Data?view=Grid%20view&pageSize={1}'.format(airtable_ids[1], page_size)
     logger.info(url)
     headers = {'content-type': 'application/json', 'Accept-Charset': 'UTF-8', 'Authorization': 'Bearer {}'.format(token)}
     r_barcode = requests.get(url, headers=headers)
@@ -169,6 +171,7 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                                     'aligned_host_sequence_submitted_to_blast',
                                     'screenshot_top_5_BLAST_matches']
                 if curr_key in array_field_list:
+                    curr_list = []
                     # FIX: this is a list of dictionaries!!!
                     # FIX: should append timestamp to filename
                     # FIX: need to get thumbnails for images if available
@@ -179,11 +182,15 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                         targ_filename = barcoding_field_dict[curr_key][idx_file_list]['filename']
                         logger.info(targ_filename)
                         urllib.request.urlretrieve(targ_url, airtable_media_path + targ_filename)
-                        setattr(curr_record, curr_key, barcoding_field_dict[curr_key][idx_file_list])
+                        curr_list.append(barcoding_field_dict[curr_key][idx_file_list])
+                        #setattr(curr_record, curr_key, barcoding_field_dict[curr_key][idx_file_list])
+                    setattr(curr_record, curr_key, curr_list)
                 elif curr_key != 'animal_id' and curr_key != 'cov_screening_data':
                     logger.info('updating screening key {}'.format(curr_key))
                     setattr(curr_record, curr_key, barcoding_field_dict[curr_key])
                 ## FIX: remove cov_screening_data from elif above!
+
+            curr_record.save()
 
             for field in barcoding_keys:
                 if field == 'gel_photo_labeled':
@@ -204,7 +211,7 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                 logger.info("*** Error: we got multiple cov_screening_data_ids back ***")
 
 
-            url = 'https://api.airtable.com/v0/appAEhvMc4tSS32ll/CoV%20Screening%20Data/{}'.format(cov_screening_data_id[0])
+            url = 'https://api.airtable.com/v0/{0}/CoV%20Screening%20Data/{1}'.format(airtable_ids[1], cov_screening_data_id[0])
             r_screening = requests.get(url, headers=headers)
             logger.info(r_screening)
             if r_screening.status_code != 200:
@@ -308,7 +315,7 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
         if 'offset' in json_response_barcode:
             logger.info('*** we have an offset so getting another batch ***')
             # you need to be setting a new json_response_barcode here!!!
-            url = 'https://api.airtable.com/v0/appAEhvMc4tSS32ll/Host%20DNA%20Barcoding%20Data?view=Grid%20view&pageSize={0}'.format(page_size)
+            url = 'https://api.airtable.com/v0/{0}/Host%20DNA%20Barcoding%20Data?view=Grid%20view&pageSize={1}'.format(airtable_ids[1], page_size)
             logger.info(url)
             headers = {'content-type': 'application/json', 'Accept-Charset': 'UTF-8', 'Authorization': 'Bearer {}'.format(token)}
             params = {'offset': '{}'.format(json_response_barcode['offset'])}

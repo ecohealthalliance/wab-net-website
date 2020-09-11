@@ -492,6 +492,7 @@ def bat_view(request, bat_id):
                               'Raw host sequence - .pdf files',
                               'Aligned host sequence (.fasta file) submitted to BLAST',
                               'Screenshot photo of top 5 BLAST matches']
+
     return render(request, 'bat.html', {
         'main_data': main_data,
         'bat_data': bat_data,
