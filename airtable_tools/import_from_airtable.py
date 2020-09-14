@@ -29,20 +29,32 @@ hdlr.setFormatter(formatter)
 logger.addHandler(hdlr)
 logger.setLevel(logging.INFO)
 
+def is_list_json_files(test_obj):
+    # test_obj must be list of json objects and must have key 'filename'
+    if isinstance(test_obj, list):
+        for el in test_obj:
+            if not isinstance(el, dict):
+                logger.info('not dictionary')
+                return False
+            try:
+                logger.info('JSON check on:')
+                logger.info(el)
+                json_obj = json.loads(json.dumps(el))
+                if 'filename' not in json_obj.keys():
+                    logger.info('no filename')
+                    return False
+            except ValueError as e:
+                logger.info('not json value error')
+                return False
+            except TypeError as te:
+                logger.info('not json type error')
+                logger.info(te)
+                return False
+    else:
+        logger.info('not list')
+        return False
 
-#SECONDS_PER_REQUEST = 1
-SECONDS_PER_REQUEST = 2
-
-logger.info('*** import_from_airtable ***')
-
-last_request_time = datetime.datetime.now()
-def throttled_request_get(*args, **kwargs):
-    global last_request_time
-    seconds_since_last_request = (datetime.datetime.now() - last_request_time).total_seconds()
-    if seconds_since_last_request < SECONDS_PER_REQUEST:
-        time.sleep(SECONDS_PER_REQUEST - seconds_since_last_request)
-    last_request_time = datetime.datetime.now()
-    return requests.get(*args, **kwargs)
+    return True
 
 def clear_all_airtable(airtable_models):
     all_screening_records = airtable_models.Screening.objects.all()
@@ -52,10 +64,10 @@ def clear_all_airtable(airtable_models):
     all_RawCovSequenceAb1_records = airtable_models.RawCovSequenceAb1.objects.all()
     all_RawCovSequenceAb1_records.delete()
 
-    #airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'airtable_georgia')
-    #for filename in os.listdir(airtable_media_path):
-    #    full_path = os.path.join(airtable_media_path, filename)
-    #    os.unlink(full_path)
+    airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'airtable')
+    for filename in os.listdir(airtable_media_path):
+        full_path = os.path.join(airtable_media_path, filename)
+        os.unlink(full_path)
 
     return
 
@@ -76,7 +88,6 @@ def import_from_airtable(airtable_models, only_new_data=False):
     except:
         # import failed so move backed-up media back
         if not only_new_data and os.path.exists(airtable_media_backup_path):
-            #shutil.move(airtable_media_backup_path, airtable_media_path)
             for mv_fn in os.listdir(airtable_media_backup_path):
                 path_to = os.path.join(airtable_media_path, mv_fn)
                 path_from = os.path.join(airtable_media_backup_path, mv_fn)
@@ -164,17 +175,8 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                 barcoding_keys = barcoding_field_dict.keys()
 
                 for curr_key in barcoding_keys:
-                    # FIX: this list should be auto populated somewhere, so this
-                    #      list doesn't need to be maintained
-                    #      Really, these should all be foreign keys onto new tables
-                    array_field_list = ['gel_photo_labeled','raw_host_sequence_txt',
-                                        'raw_host_sequence_ab1','raw_host_sequence_pdf',
-                                        'aligned_host_sequence_submitted_to_blast',
-                                        'screenshot_top_5_BLAST_matches']
-                    if curr_key in array_field_list:
+                    if is_list_json_files(barcoding_field_dict[curr_key]):
                         curr_list = []
-                        # FIX: this is a list of dictionaries!!!
-                        # FIX: should append timestamp to filename
                         # FIX: need to get thumbnails for images if available
                         logger.info('*** got barcoding file {} ***'.format(curr_key))
                         for idx_file_list in range(len(barcoding_field_dict[curr_key])):
@@ -184,7 +186,6 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                             logger.info(targ_filename)
                             urllib.request.urlretrieve(targ_url, airtable_media_path + targ_filename)
                             curr_list.append(barcoding_field_dict[curr_key][idx_file_list])
-                            #setattr(curr_record, curr_key, barcoding_field_dict[curr_key][idx_file_list])
                         setattr(curr_record, curr_key, curr_list)
                     elif curr_key != 'animal_id' and curr_key != 'cov_screening_data':
                         logger.info('updating screening key {}'.format(curr_key))
@@ -205,12 +206,9 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                 # read in screening data
                 #airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'airtable')
                 logger.info('****  reading in screening data   ****')
-                # FIX: screening id is a list!! must be able associate many screening tables with barcode table
-                #      Actually, after conversation with Kendra, this won't happen so warn or error on multiple
+                # screening id is a list, but should never be more than one, so error on multiple
                 if len(cov_screening_data_id) > 1:
-                    ## FIX: this should probably raise and error
-                    logger.info("*** Error: we got multiple cov_screening_data_ids back ***")
-
+                    raise ValueError('Error: got multiple screeing records for AirTable read of {}'.format(cov_screening_data_id[0]))
 
                 url = 'https://api.airtable.com/v0/{0}/CoV%20Screening%20Data/{1}'.format(at_id, cov_screening_data_id[0])
                 r_screening = requests.get(url, headers=headers)
@@ -249,7 +247,7 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                     continue
                 elif airtable_models.Barcoding.objects.filter(animal_id='{}'.format(screening_field_dict['animal_id'])).count() > 1:
                     logger.info("*** Error: got multiple records back for animal_id = {}".format(screening_field_dict['animal_id']))
-                    ## Fix: this should raise an error if we're not going to handle it
+                    raise ValueError("*** Error: got multiple records back for animal_id = {}".format(screening_field_dict['animal_id']))
 
                 # create screening table(s)
                 screening_keys = screening_field_dict.keys()
@@ -263,18 +261,8 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                 curr_record = airtable_models.Screening.objects.get(animal_id='{}'.format(screening_field_dict['animal_id']))
                 logger.info(dir(curr_record))
 
-                #airtable_media_path = os.path.join(settings.MEDIA_ROOT, 'airtable_georgia/')
                 for curr_key in screening_keys:
-                    # FIX: this list should be auto populated somewhere, so this
-                    #      list doesn't need to be maintained
-                    #      Really, these should all be foreign keys onto new tables
-                    array_field_list = ['gel_photo_labeled', 'raw_cov_sequence_txt',
-                                        'aligned_cov_sequence_submitted_to_blast',
-                                        'screenshot_top_5_BLAST_matches',
-                                        'raw_cov_sequence_ab1', 'raw_cov_sequence_pdf']
-                    if curr_key in array_field_list:
-                        # FIX: this is a list of dictionaries!!!
-                        # FIX: should append timestamp to filename?
+                    if is_list_json_files(screening_field_dict[curr_key]):
                         # FIX: get thumbnails for images if available
                         logger.info('<--->len of screening_field_dict: {}'.format(len(screening_field_dict[curr_key])))
                         curr_list = []
