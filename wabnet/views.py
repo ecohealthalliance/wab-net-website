@@ -107,14 +107,15 @@ def splash(request):
         all_countries = True
     sites = []
     for site_data in SiteData.objects.all():
-        coords = json.loads(str(get_site_attr(site_data, 'Site_location_GPS')).replace("'", '"'))
-        sites.append({
-            'id': site_data.uuid,
-            'country': site_data.country,
-            'title': site_data.title,
-            'coords': [coords['latitude'], coords['longitude']],
-            'accessible': all_countries or site_data.country in user_viewable_countries,
-        })
+        if all_countries or site_data.country in user_viewable_countries:
+            coords = json.loads(str(get_site_attr(site_data, 'Site_location_GPS')).replace("'", '"'))
+            sites.append({
+                'id': site_data.uuid,
+                'country': site_data.country,
+                'title': site_data.title,
+                'coords': [coords['latitude'], coords['longitude']],
+                'accessible': all_countries or site_data.country in user_viewable_countries,
+            })
     samples_by_species = {}
     for bat_data in BatData.objects.all():
         bat_family, bat_species = get_bat_species(bat_data)
