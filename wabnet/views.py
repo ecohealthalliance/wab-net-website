@@ -418,8 +418,8 @@ def bat_view(request, bat_id):
     bat_family, bat_species = get_bat_species(bat_data)
     ### FIX: this need to be generic so it doens't need to be updated
     ###      every time they change the survey!!
-    logger.info(getattr(bat_data, 'x_63_ANIMAL_ID_eg_PK00_x'))
-    curr_animal_id = getattr(bat_data, 'x_63_ANIMAL_ID_eg_PK00_x')
+    curr_animal_id = get_bat_attr(bat_data, 'ANIMAL_ID_eg_PK00')
+    #curr_animal_id = getattr(bat_data, 'x_63_ANIMAL_ID_eg_PK00_x')
     barcoding_data = {}
     barcoding_filename_list_dict = {}
     special_barcoding_keys_short = ['gel_photo_labeled', 'raw_host_sequence_txt',
@@ -440,6 +440,7 @@ def bat_view(request, bat_id):
     # FIX: may get back a list of screeing data
     screening_data = {}
     screening_filename_list_dict = {}
+    new_screening_filename_list_dict = {}
     special_screening_keys_short = ['raw_cov_sequence_ab1', 'raw_cov_sequence_txt',
                                     'raw_cov_sequence_pdf', 'screenshot_top_5_BLAST_matches',
                                     'aligned_cov_sequence_submitted_to_blast',
@@ -447,12 +448,22 @@ def bat_view(request, bat_id):
     if airtable_models.Screening.objects.filter(animal_id=curr_animal_id).count() > 0:
         curr_obj = airtable_models.Screening.objects.get(animal_id='{}'.format(curr_animal_id))
         screening_data = model_to_dict(airtable_models.Screening.objects.get(animal_id=curr_animal_id))
-        # change dictionary keys to verbose string
+
         '''  retrieve from separate class (not currently used)
         raw_cov_sequence_ab1_data = airtable_models.RawCovSequenceAb1.objects.filter(screening_parent__animal_id=curr_animal_id)
         if len(raw_cov_sequence_ab1_data) > 0:
             raw_cov_sequence_ab1_data = list(raw_cov_sequence_ab1_data.values())
+        logger.info('*** raw_cov_sequence_ab1_data ***')
+        logger.info(raw_cov_sequence_ab1_data)
+        ab1_list = []
+        for json_obj in raw_cov_sequence_ab1_data:
+            if 'filename' in json_obj.keys():
+                ab1_list.append(json_obj['filename'])
+        new_screening_filename_list_dict['raw_cov_sequence_ab1'] = ab1_list
+        logger.info('*** new_screening_filename_list_dict ***')
+        logger.info(new_screening_filename_list_dict)
         '''
+
 
         for special_key in special_screening_keys_short:
             if special_key in screening_data.keys() and screening_data[special_key]:
@@ -461,6 +472,8 @@ def bat_view(request, bat_id):
                 for curr_file_dict in file_data:
                     tmp_filename_list.append(curr_file_dict['filename'])
                 screening_filename_list_dict[special_key] = tmp_filename_list
+        #logger.info('*** screening_filename_list_dict ***')
+        #logger.info(screening_filename_list_dict)
 
     ## convert short key names to verbose - screening
     mod_key_list = []

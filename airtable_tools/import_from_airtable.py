@@ -129,15 +129,6 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
     json_response_barcode = {}
     for at_id in airtable_ids:
         (json_response_barcode, record_batch_size, headers) = get_airtable_batch(json_response_barcode, at_id, page_size, token)
-        '''
-        url = 'https://api.airtable.com/v0/{0}/Host%20DNA%20Barcoding%20Data?view=Grid%20view&pageSize={1}'.format(at_id, page_size)
-        headers = {'content-type': 'application/json', 'Accept-Charset': 'UTF-8', 'Authorization': 'Bearer {}'.format(token)}
-        r_barcode = requests.get(url, headers=headers)
-        if r_barcode.status_code != 200:
-            raise ValueError('Error: got return code {0} for AirTable barcoding read'.format(r_barcode.status_code))
-        json_response_barcode = r_barcode.json()
-        record_batch_size = len(json_response_barcode['records'])
-        '''
 
         animal_id_barcoding_list = []
         animal_id_screening_list = []
@@ -262,7 +253,8 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                                     filename = '{}'.format(screening_field_dict[curr_key][idx_file_list]['filename']),
                                     size = screening_field_dict[curr_key][idx_file_list]['size'],
                                     type = '{}'.format(screening_field_dict[curr_key][idx_file_list]['type']),
-                                    screening_parent=airtable_models.Screening.objects.get(animal_id='{}'.format(screening_field_dict['animal_id']))
+                                    screening_parent=airtable_models.Screening.objects.get(animal_id='{}'.format(screening_field_dict['animal_id'])),
+                                    screening_key='{}'.format(curr_key)
                                 )
                         setattr(curr_record, curr_key, curr_list)
                     elif curr_key != 'animal_id':
@@ -274,16 +266,6 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
 
             if 'offset' in json_response_barcode:
                 (json_response_barcode, record_batch_size, headers) = get_airtable_batch(json_response_barcode, at_id, page_size, token)
-                '''
-                url = 'https://api.airtable.com/v0/{0}/Host%20DNA%20Barcoding%20Data?view=Grid%20view&pageSize={1}'.format(at_id, page_size)
-                headers = {'content-type': 'application/json', 'Accept-Charset': 'UTF-8', 'Authorization': 'Bearer {}'.format(token)}
-                params = {'offset': '{}'.format(json_response_barcode['offset'])}
-                r_barcode = requests.get(url, headers=headers, params=params)
-                if r_barcode.status_code != 200:
-                    raise ValueError('Error: got return code {0} for AirTable barcoding read'.format(r_barcode.status_code))
-                json_response_barcode = r_barcode.json()
-                record_batch_size = len(json_response_barcode['records'])
-                '''
             else:
                 done = True
 

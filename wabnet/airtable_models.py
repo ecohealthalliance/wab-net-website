@@ -127,3 +127,4 @@ class RawCovSequenceAb1(models.Model):
     size = models.PositiveIntegerField()
     type = models.TextField()
     screening_parent = models.ForeignKey(Screening, on_delete=models.CASCADE)
+    screening_key = models.TextField()
