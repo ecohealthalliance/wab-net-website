@@ -6,6 +6,7 @@ import shutil
 import django
 import datetime
 from django.core.files.base import ContentFile
+from django.core.mail import send_mail
 from django.db import models
 import re
 from django.conf import settings
@@ -78,13 +79,19 @@ def import_from_airtable(airtable_models, only_new_data=False):
     # try importing
     try:
         import_from_airtable_transaction(airtable_models, only_new_data)
-    except:
+    except Exception as e:
         # import failed so move backed-up media back
         if not only_new_data and os.path.exists(airtable_media_backup_path):
             for mv_fn in os.listdir(airtable_media_backup_path):
                 path_to = os.path.join(airtable_media_path, mv_fn)
                 path_from = os.path.join(airtable_media_backup_path, mv_fn)
                 shutil.move(path_from, path_to)
+        # send email notification of failure
+        send_mail('WAB-NET-Website Airtable data import failed',
+                  str(e),
+                  'young@ecohealthalliance.org',
+                  ['young@ecohealthalliance.org'],
+                  fail_silently=False)
         raise
     if not only_new_data:
         if os.path.exists(airtable_media_backup_path):

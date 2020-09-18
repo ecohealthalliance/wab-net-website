@@ -26,6 +26,7 @@ DEBUG = os.environ.get('DEBUG', False)
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
+    'django_slack',
     'wabnet',
     'ec5_tools',
     'airtable_tools',
@@ -57,7 +58,9 @@ ROOT_URLCONF = 'wabnet.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+                'django.template.loaders.app_directories.Loader'
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -65,7 +68,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'django.template.context_processors.request',
+                'django.template.context_processors.request'
             ],
         },
     },

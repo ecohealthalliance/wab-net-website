@@ -41,3 +41,6 @@ Local/stage install/deploy notes:
 If it passes tests from WAB-NET team:
 6) merge test branch with master
 7) deploy with Ansible playbook
+
+### newly installed packages:
++ pip install django-slack
