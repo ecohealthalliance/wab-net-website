@@ -17,6 +17,7 @@ from . import ec5_models
 from . import airtable_models
 import types
 from django.forms.models import model_to_dict
+import os
 
 import logging
 
@@ -396,6 +397,7 @@ def raise_if_user_cannot_access_bat(user, bat_id):
 
 @login_required
 def bat_view(request, bat_id):
+    base_url = '/media/airtable/'
     raise_if_user_cannot_access_bat(request.user, bat_id)
     tables = []
     for model_name, child_model in child_models.items():
@@ -471,7 +473,19 @@ def bat_view(request, bat_id):
                 file_data = json.loads(screening_data[special_key].replace("'", '"'))
                 tmp_filename_list = []
                 for curr_file_dict in file_data:
-                    tmp_filename_list.append(curr_file_dict['filename'])
+                    if '.' in curr_file_dict['filename']:
+                        thumb_filename_list = curr_file_dict['filename'].split('.')
+                        thumb_path = '.' + base_url + '.'.join(thumb_filename_list[:-1]) + '_thumb.' + thumb_filename_list[-1]
+                    else:
+                        thumb_path = '.' + base_url + curr_file_dict['filename'] + '_thumb'
+                    logger.info('*** thumb_path ***')
+                    logger.info(thumb_path)
+                    if os.path.isfile(thumb_path):
+                        logger.info('* got one *')
+                    else:
+                        logger.info('* no thumb *')
+                    ## FIX: need to make this a tuple with thubmnail file name 
+                    tmp_filename_list.append(curr_file_dict['filename'], )
                 screening_filename_list_dict[special_key] = tmp_filename_list
         #logger.info('*** screening_filename_list_dict ***')
         #logger.info(screening_filename_list_dict)
@@ -504,7 +518,6 @@ def bat_view(request, bat_id):
         main_data.append((field, getattr(bat_data, field.name),))
 
     raw_cov_sequence_ab1_filename = "foo"
-    base_url = '/media/airtable/'
     special_screening_keys = ['Gel photo - labeled', 'Raw CoV sequence - .txt files',
                               'Raw CoV sequence - .ab1 files',
                               'Raw CoV sequence - .pdf files',
