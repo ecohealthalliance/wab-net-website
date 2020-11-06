@@ -44,6 +44,8 @@ class SiteData(models.Model):
     x_29_Evidence_of_human_x = models.TextField(verbose_name='Evidence of human disturbance at site (select all that apply)')
     x_30_Specify_x = models.TextField(verbose_name='Specify ')
 
+    def get_country(self):
+        return self.country
 
 class x_31_Site_photographs_x(models.Model):
     keywords = GenericRelation(entity_keywords_model.EntityKeywords)
@@ -61,6 +63,8 @@ class x_31_Site_photographs_x(models.Model):
     x_35_Site_photograph_4_x = models.FileField(upload_to='ec5/', verbose_name='Site photograph 4')
     x_36_Description_of_si_x = models.TextField(verbose_name='Description of site photograph')
 
+    def get_country(self):
+        return self.parent.country
 
 class x_37_Site_video_option_x(models.Model):
     keywords = GenericRelation(entity_keywords_model.EntityKeywords)
@@ -73,6 +77,9 @@ class x_37_Site_video_option_x(models.Model):
     title = models.TextField()
     parent = models.ForeignKey(SiteData, on_delete=models.CASCADE)
     x_38_Site_video_x = models.FileField(upload_to='ec5/', verbose_name='Site video')
+
+    def get_country(self):
+        return self.parent.country
 
 class TrappingEvent(models.Model):
     keywords = GenericRelation(entity_keywords_model.EntityKeywords)
@@ -105,6 +112,9 @@ class TrappingEvent(models.Model):
     x_60_Page_7_x = models.FileField(upload_to='ec5/', verbose_name='Page 7')
     x_61_Page_8_x = models.FileField(upload_to='ec5/', verbose_name='Page 8')
     x_62_Field_notes_x = models.TextField(verbose_name='Field notes')
+
+    def get_country(self):
+        return self.parent.country
 
 class BatData(models.Model):
     keywords = GenericRelation(entity_keywords_model.EntityKeywords)
@@ -179,6 +189,8 @@ class BatData(models.Model):
     x_139_If_yes_deposited_x = models.TextField(verbose_name='If yes, deposited at what facility?')
     x_140_Additional_infor_x = models.TextField(verbose_name='Additional information noted')
 
+    def get_country(self):
+        return self.parent.parent.country
 
 class x_124_Acoustic_recordi_x(models.Model):
     keywords = GenericRelation(entity_keywords_model.EntityKeywords)
@@ -199,3 +211,5 @@ class x_124_Acoustic_recordi_x(models.Model):
     x_131_Acoustic_recordi_x = models.FileField(upload_to='ec5/', verbose_name='Acoustic recording 3')
     x_132_File_numbers_typ_x = models.TextField(verbose_name='File number(s), typically xxxx.wav')
 
+    def get_country(self):
+        return self.parent.parent.parent.country
