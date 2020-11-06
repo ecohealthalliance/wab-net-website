@@ -27,7 +27,6 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
-    'django_slack',
     'wabnet',
     'ec5_tools',
     'airtable_tools',
