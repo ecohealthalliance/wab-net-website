@@ -3,6 +3,7 @@ import os
 from ec5_tools.utils import format_name
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
+import sys
 
 class Command(BaseCommand):
     help = 'Create models for the EC5 survey specified in settings'
@@ -16,16 +17,16 @@ class Command(BaseCommand):
           'client_id': settings.EC5_CLIENT_ID,
           'client_secret': settings.EC5_SECRET_KEY
         })
-        
+
         response.raise_for_status()
         token = response.json()
-        
+
         response = requests.get('https://five.epicollect.net/api/export/project/' + settings.EC5_PROJECT_NAME, headers={
             'Authorization': 'Bearer ' + token['access_token']
         })
         response.raise_for_status()
         resp_json = response.json()
-        
+
         def get_form_mappings(form):
             result = {}
             for key, value in form.items():
@@ -35,15 +36,15 @@ class Command(BaseCommand):
                 if len(value['group']) > 0:
                     result.update(get_form_mappings(value['group']))
             return result
-        
-        
+
+
         all_form_mappings = {}
         for mapping in resp_json['meta']['project_mapping']:
             if mapping['is_default']:
                 for form_meta in mapping['forms'].values():
                     all_form_mappings.update(get_form_mappings(form_meta))
                 break
-        
+
         def generate_form_models(inputs, ref, parent_ref=None, is_branch=False, name=None):
             result = []
             result.append("class %s(models.Model):" % format_name(all_form_mappings[ref]))
@@ -77,12 +78,39 @@ class Command(BaseCommand):
                     else:
                         result.append("    %s = models.TextField(verbose_name='%s')" % (format_name(all_form_mappings[inp['ref']]), inp['question']))
             generate_vars_from_inputs(inputs)
+
+            def generate_get_country_method(model_name):
+                print(model_name)
+                out_str = ''
+                if 'Site_photographs' in model_name:
+                    out_str = '\n    def get_country(self):\n'
+                    out_str += '        return self.parent.country'
+                elif 'Site_video_option' in model_name:
+                    out_str = '\n    def get_country(self):\n'
+                    out_str += '        return self.parent.country'
+                elif model_name == 'SiteData':
+                    out_str = '\n    def get_country(self):\n'
+                    out_str += '        return self.country'
+                elif model_name == 'TrappingEvent':
+                    out_str = '\n    def get_country(self):\n'
+                    out_str += '        return self.parent.country'
+                elif 'Acoustic_recordi' in model_name:
+                    out_str = '\n    def get_country(self):\n'
+                    out_str += '        return self.parent.parent.parent.country'
+                elif model_name == 'BatData':
+                    out_str = '\n    def get_country(self):\n'
+                    out_str += '        return self.parent.parent.country'
+                print(out_str)
+                return out_str
+
+            result.append(generate_get_country_method(format_name(all_form_mappings[ref])))
+
             for inp in inputs:
                 if inp['type'] == 'branch':
                     result.append("\n")
                     result.append(generate_form_models(inp['branch'], inp['ref'], ref, is_branch=True, name=inp['question']))
             return "\n".join(result)
-        
+
         with open(os.path.join(options['project_dir'], 'ec5_models.py'), 'w') as f:
             f.write("""# These models were generated from an Epicollect 5 project via generate_models.py
 from django.db import models
