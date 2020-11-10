@@ -478,12 +478,14 @@ def bat_view(request, bat_id):
                         thumb_path = '.' + base_url + '.'.join(thumb_filename_list[:-1]) + '_thumb.' + thumb_filename_list[-1]
                     else:
                         thumb_path = '.' + base_url + curr_file_dict['filename'] + '_thumb'
+                    ''' thumbnails are not a current priority, so commenting untill I can get back to it
                     logger.info('*** thumb_path ***')
                     logger.info(thumb_path)
                     if os.path.isfile(thumb_path):
                         logger.info('* got one *')
                     else:
                         logger.info('* no thumb *')
+                    '''
                     ## FIX: need to make this a tuple with thubmnail file name
                     tmp_filename_list.append(curr_file_dict['filename'], )
                 screening_filename_list_dict[special_key] = tmp_filename_list
