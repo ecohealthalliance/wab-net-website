@@ -109,13 +109,13 @@
                                 {% elif key == 'Gel photo - labeled' %}
                                     <ul class="list-group">
                                         {% for fn in barcoding_filename_list_dict.gel_photo_labeled %}
-                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</li>
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
                                         {% endfor %}
                                     </ul>
                                 {% elif key == 'Screenshot photo of top 5 BLAST matches' %}
                                     <ul class="list-group">
                                         {% for fn in barcoding_filename_list_dict.screenshot_top_5_BLAST_matches %}
-                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</li>
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
                                         {% endfor %}
                                     </ul>
                                 {% endif %}
@@ -166,13 +166,13 @@
                                 {% elif key == 'Gel photo - labeled' %}
                                     <ul class="list-group">
                                         {% for fn in screening_filename_list_dict.gel_photo_labeled %}
-                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</li>
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
                                         {% endfor %}
                                     </ul>
                                 {% elif key == 'Screenshot photo of top 5 BLAST matches' %}
                                     <ul class="list-group">
                                         {% for fn in screening_filename_list_dict.screenshot_top_5_BLAST_matches %}
-                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</li>
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
                                         {% endfor %}
                                     </ul>
                                 {% endif %}
