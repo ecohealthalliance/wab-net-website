@@ -426,7 +426,7 @@ def bat_view(request, bat_id):
     barcoding_data = {}
     barcoding_filename_list_dict = {}
     special_barcoding_keys_short = ['gel_photo_labeled', 'raw_host_sequence_txt',
-                                    'raw_cov_sequence_ab1', 'raw_cov_sequence_pdf',
+                                    'raw_host_sequence_ab1', 'raw_host_sequence_pdf',
                                     'aligned_host_sequence_submitted_to_blast',
                                     'screenshot_top_5_BLAST_matches']
     if airtable_models.Barcoding.objects.filter(animal_id=curr_animal_id).count() > 0:
@@ -484,7 +484,7 @@ def bat_view(request, bat_id):
                         logger.info('* got one *')
                     else:
                         logger.info('* no thumb *')
-                    ## FIX: need to make this a tuple with thubmnail file name 
+                    ## FIX: need to make this a tuple with thubmnail file name
                     tmp_filename_list.append(curr_file_dict['filename'], )
                 screening_filename_list_dict[special_key] = tmp_filename_list
         #logger.info('*** screening_filename_list_dict ***')
