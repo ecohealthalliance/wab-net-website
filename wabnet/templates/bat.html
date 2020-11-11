@@ -78,7 +78,7 @@
             <div class="panel-heading">Barcoding Data {{ barcoding_data.animal_id }}</div>
             <dl class="panel-body">
                 {% for key,val in barcoding_data.items %}
-                    {% if val != '' and val != None and key != 'ID' and key != 'CoV Barcoding Data' %}
+                    {% if val != '' and val != None and key != 'ID' and key != 'CoV Barcoding Data' and key != 'CoV Screening Data' %}
                         {% if key in special_barcoding_keys %}
                             <dt>{{ key }}</dt>
                             <dd>
@@ -135,7 +135,7 @@
             <div class="panel-heading">Screening Data {{ screeing_data.animal_id }}</div>
             <dl class="panel-body">
                 {% for key,val in screening_data.items %}
-                    {% if key != 'ID' and val != '' and val != None and key != 'id' %}
+                    {% if key != 'ID' and val != '' and val != None and key != 'id' and key != 'Unique ANIMAL ID (re-entry)'%}
                         {% if key in special_screening_keys %}
                             <dt>{{ key }}</dt>
                             <dd>
