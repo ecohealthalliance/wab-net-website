@@ -273,6 +273,7 @@ def get_bat_attr(bat_data, attr_base_name):
     found_targ_attr = False
     targ_attr = ''
     for curr_attr in dir(attr_source):
+        print(curr_attr)
         if attr_base_name in curr_attr:
             if found_targ_attr:
                 raise ValueError('views.py: get_bat_attr(): found duplicate base attributes!')
@@ -281,7 +282,7 @@ def get_bat_attr(bat_data, attr_base_name):
                 targ_attr = curr_attr
 
     if not found_targ_attr:
-        raise ValueError('views.py: get_bat_attr(): base_attr_name not found')
+        raise ValueError('views.py: get_bat_attr(): attr_base_name not found')
 
     return getattr(attr_source, targ_attr)
 
@@ -380,7 +381,8 @@ def bat_table(request):
         bats = get_query_bat_list(bats, request.GET.get('q'))
     if request.GET.get('hasRecording') == 'on':
         bats = get_recording_bat_list(bats)
-    table = BatTable(bats)
+    bats_sorted = bats.order_by(bats[0].get_long_name('ANIMAL_ID'))
+    table = BatTable(bats_sorted)
     RequestConfig(request, paginate={'per_page': 20}).configure(table)
     return render(request, 'bat_table.html', {'table': table})
 

@@ -80,7 +80,6 @@ class Command(BaseCommand):
             generate_vars_from_inputs(inputs)
 
             def generate_get_country_method(model_name):
-                print(model_name)
                 out_str = ''
                 if 'Site_photographs' in model_name:
                     out_str = '\n    def get_country(self):\n'
@@ -100,10 +99,24 @@ class Command(BaseCommand):
                 elif model_name == 'BatData':
                     out_str = '\n    def get_country(self):\n'
                     out_str += '        return self.parent.parent.country'
-                print(out_str)
                 return out_str
 
             result.append(generate_get_country_method(format_name(all_form_mappings[ref])))
+
+            def generate_get_long_name_method(model_name):
+                out_str = '\n    def get_long_name(self, short_name):\n'
+                out_str += '        if short_name == "ANIMAL_ID":\n'
+                out_str += '            targ = "_ANIMAL_ID_eg_PK00_x"\n'
+                out_str += '        else:\n'
+                out_str += '            raise ValueError("ec5_models.py:BatData():get_long_name: short name __{}__ not supported".format(short_name))\n'
+                out_str += '\n'
+                out_str += '        for f in BatData._meta.get_fields():'
+                out_str += '            if targ in getattr(f, "name"):'
+                out_str += '                return getattr(f, "name")'
+                return out_str
+
+            if format_name(all_form_mappings[ref]) == 'BatData':
+                result.append(generate_get_long_name_method(format_name(all_form_mappings[ref])))
 
             for inp in inputs:
                 if inp['type'] == 'branch':

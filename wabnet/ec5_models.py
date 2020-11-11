@@ -192,6 +192,17 @@ class BatData(models.Model):
     def get_country(self):
         return self.parent.parent.country
 
+    def get_long_name(self, short_name):
+        if short_name == 'ANIMAL_ID':
+            targ = '_ANIMAL_ID_eg_PK00_x'
+        else:
+            raise ValueError('ec5_models.py:BatData():get_long_name: short name __{}__ not supported'.format(short_name))
+
+        for f in BatData._meta.get_fields():
+            if targ in getattr(f, 'name'):
+                return getattr(f, 'name')
+
+
 class x_124_Acoustic_recordi_x(models.Model):
     keywords = GenericRelation(entity_keywords_model.EntityKeywords)
     name = 'Acoustic recording information'
