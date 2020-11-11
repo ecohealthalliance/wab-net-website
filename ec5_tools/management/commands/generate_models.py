@@ -110,9 +110,9 @@ class Command(BaseCommand):
                 out_str += '        else:\n'
                 out_str += '            raise ValueError("ec5_models.py:BatData():get_long_name: short name __{}__ not supported".format(short_name))\n'
                 out_str += '\n'
-                out_str += '        for f in BatData._meta.get_fields():'
-                out_str += '            if targ in getattr(f, "name"):'
-                out_str += '                return getattr(f, "name")'
+                out_str += '        for f in BatData._meta.get_fields():\n'
+                out_str += '            if targ in getattr(f, "name"):\n'
+                out_str += '                return getattr(f, "name")\n'
                 return out_str
 
             if format_name(all_form_mappings[ref]) == 'BatData':
