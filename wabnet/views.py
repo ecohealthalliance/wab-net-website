@@ -397,6 +397,12 @@ def raise_if_user_cannot_access_bat(user, bat_id):
         if len(bats) == 0:
             raise PermissionDenied
 
+def format_dict_data(dict_data):
+    for key,val in dict_data.items():
+        if isinstance(val, datetime.date):
+            dict_data[key] = val.date()
+    return dict_data
+
 @login_required
 def bat_view(request, bat_id):
     base_url = '/media/airtable/'
@@ -540,8 +546,8 @@ def bat_view(request, bat_id):
         'trapping_event_form': TrappingEventForm(instance=bat_data.parent),
         'tables': tables,
         'secondary_data_table': secondary_data_table,
-        'barcoding_data': barcoding_data,
-        'screening_data': screening_data,
+        'barcoding_data': format_dict_data(barcoding_data),
+        'screening_data': format_dict_data(screening_data),
         'base_url': base_url,
         'screening_filename_list_dict': screening_filename_list_dict,
         'barcoding_filename_list_dict': barcoding_filename_list_dict,
