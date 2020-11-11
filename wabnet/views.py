@@ -273,7 +273,6 @@ def get_bat_attr(bat_data, attr_base_name):
     found_targ_attr = False
     targ_attr = ''
     for curr_attr in dir(attr_source):
-        print(curr_attr)
         if attr_base_name in curr_attr:
             if found_targ_attr:
                 raise ValueError('views.py: get_bat_attr(): found duplicate base attributes!')
@@ -377,12 +376,13 @@ def bat_table(request):
     else:
         bats = BatData.objects.filter(
             parent__parent__country__in=user_viewable_countries)
+    bats = bats.order_by(bats[0].get_long_name('ANIMAL_ID'))
+
     if request.GET.get('q'):
         bats = get_query_bat_list(bats, request.GET.get('q'))
     if request.GET.get('hasRecording') == 'on':
         bats = get_recording_bat_list(bats)
-    bats_sorted = bats.order_by(bats[0].get_long_name('ANIMAL_ID'))
-    table = BatTable(bats_sorted)
+    table = BatTable(bats)
     RequestConfig(request, paginate={'per_page': 20}).configure(table)
     return render(request, 'bat_table.html', {'table': table})
 
