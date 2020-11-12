@@ -175,9 +175,11 @@ def site_view(request, site_id):
     table = BatTable(objects)
     RequestConfig(request).configure(table)
     tables.append(table)
+    site_data_dict = model_to_dict(site_data)
     return render(request, 'site.html', {
         'form': SiteDataForm(instance=site_data),
         'site_data': site_data,
+        'site_data_dict': site_data_dict,
         'tables': tables})
 
 @login_required
@@ -397,10 +399,27 @@ def raise_if_user_cannot_access_bat(user, bat_id):
         if len(bats) == 0:
             raise PermissionDenied
 
-def format_dict_data(dict_data):
+def format_dict_data(dict_data, mode):
+
+    # remove keys based on mode
+    if mode == 'trapping':
+        del dict_data['uuid']
+        del dict_data['title']
+        del dict_data['parent']
+
+    # finer changes
     for key,val in dict_data.items():
+        # remove time from all dates
         if isinstance(val, datetime.date):
             dict_data[key] = val.date()
+        # remove square brackes from python list strings
+        if isinstance(val, str) and len(val) > 0 and val[0] == '[':
+            dict_data[key] = val.lstrip('[').rstrip(']')
+        if val != '' and mode == 'trapping' and 'Page' in key:
+            url_list = dict_data[key].url.split('/')
+            fn = url_list[-1]
+            dict_data[key] = (dict_data[key].url, fn)
+
     return dict_data
 
 @login_required
@@ -539,6 +558,19 @@ def bat_view(request, bat_id):
                               'Aligned host sequence (.fasta file) submitted to BLAST',
                               'Screenshot photo of top 5 BLAST matches']
 
+    #print(TrappingEventForm(instance=bat_data.parent))
+    name_dict = {}
+    for field in bat_data.parent._meta.get_fields():
+        if hasattr(field, 'verbose_name'):
+            name_dict[field.name] = field.verbose_name
+    trapping_event_dict_tmp = model_to_dict(bat_data.parent)
+    trapping_event_data = {}
+    for key,val in trapping_event_dict_tmp.items():
+        if key in name_dict.keys():
+            trapping_event_data[name_dict[key]] = val
+        else:
+            trapping_event_data[key] = val
+
     return render(request, 'bat.html', {
         'main_data': main_data,
         'bat_data': bat_data,
@@ -546,8 +578,9 @@ def bat_view(request, bat_id):
         'trapping_event_form': TrappingEventForm(instance=bat_data.parent),
         'tables': tables,
         'secondary_data_table': secondary_data_table,
-        'barcoding_data': format_dict_data(barcoding_data),
-        'screening_data': format_dict_data(screening_data),
+        'barcoding_data': format_dict_data(barcoding_data, 'barcoding'),
+        'screening_data': format_dict_data(screening_data, 'screening'),
+        'trapping_event_data': format_dict_data(trapping_event_data, 'trapping'),
         'base_url': base_url,
         'screening_filename_list_dict': screening_filename_list_dict,
         'barcoding_filename_list_dict': barcoding_filename_list_dict,

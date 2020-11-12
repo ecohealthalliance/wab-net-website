@@ -53,6 +53,7 @@
         </div>
     {% endfor %}
 
+    <!--
     <div class="model-data panel panel-primary">
         <div class="panel-heading">Trapping Event Data</div>
         <dl class="panel-body">
@@ -69,6 +70,23 @@
                     {% endif %}
                     {% endwith %}
                 </dd>
+            {% endfor %}
+        </dl>
+    </div>
+    -->
+    
+    <div class="model-data panel panel-primary">
+        <div class="panel-heading">Trapping Event Data</div>
+        <dl class="panel-body">
+            <dt>Site</dt>
+            <dd><a href="{% url 'sites' bat_data.parent.parent.uuid %}">{{ bat_data.parent.parent.title }}</a></dd>
+            {% for key,val in trapping_event_data.items %}
+                <dt>{{ key }}</dt>
+                    {% if 'Page' in key %}
+                        <dd><a href="{{val.0}}">{{val.1}}</a></dd>
+                    {% else %}
+                        <dd>{{ val }}</dd>
+                    {% endif %}
             {% endfor %}
         </dl>
     </div>
