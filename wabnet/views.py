@@ -175,11 +175,12 @@ def site_view(request, site_id):
     table = BatTable(objects)
     RequestConfig(request).configure(table)
     tables.append(table)
-    site_data_dict = model_to_dict(site_data)
+    site_data_dict = make_verbose_dict(site_data)
+
     return render(request, 'site.html', {
         'form': SiteDataForm(instance=site_data),
         'site_data': site_data,
-        'site_data_dict': site_data_dict,
+        'site_data_dict': format_dict_data(site_data_dict, 'site'),
         'tables': tables})
 
 @login_required
@@ -406,6 +407,11 @@ def format_dict_data(dict_data, mode):
         del dict_data['uuid']
         del dict_data['title']
         del dict_data['parent']
+    elif mode == 'site':
+        del dict_data['uuid']
+        del dict_data['created by']
+        del dict_data['created at']
+        del dict_data['title']
 
     # finer changes
     for key,val in dict_data.items():
@@ -419,8 +425,26 @@ def format_dict_data(dict_data, mode):
             url_list = dict_data[key].url.split('/')
             fn = url_list[-1]
             dict_data[key] = (dict_data[key].url, fn)
-
+        if val != '' and mode == 'site' and key == 'Site location (GPS coords.)':
+            tmp_json = json.loads(val.replace("'",'"'))
+            dict_data[key] = 'latitude: ' + str(tmp_json['latitude']) + ', ' + 'longitude: ' + str(tmp_json['longitude'])
     return dict_data
+
+def make_verbose_dict(curr_model):
+    # make model dictionary with keys from model's verbose names
+    name_dict = {}
+    for field in curr_model._meta.get_fields():
+        if hasattr(field, 'verbose_name'):
+            name_dict[field.name] = field.verbose_name
+    tmp_dict = model_to_dict(curr_model)
+    new_dict = {}
+    for key,val in tmp_dict.items():
+        if key in name_dict.keys():
+            new_dict[name_dict[key]] = val
+        else:
+            new_dict[key] = val
+    return new_dict
+
 
 @login_required
 def bat_view(request, bat_id):
@@ -558,18 +582,7 @@ def bat_view(request, bat_id):
                               'Aligned host sequence (.fasta file) submitted to BLAST',
                               'Screenshot photo of top 5 BLAST matches']
 
-    #print(TrappingEventForm(instance=bat_data.parent))
-    name_dict = {}
-    for field in bat_data.parent._meta.get_fields():
-        if hasattr(field, 'verbose_name'):
-            name_dict[field.name] = field.verbose_name
-    trapping_event_dict_tmp = model_to_dict(bat_data.parent)
-    trapping_event_data = {}
-    for key,val in trapping_event_dict_tmp.items():
-        if key in name_dict.keys():
-            trapping_event_data[name_dict[key]] = val
-        else:
-            trapping_event_data[key] = val
+    trapping_event_data = make_verbose_dict(bat_data.parent)
 
     return render(request, 'bat.html', {
         'main_data': main_data,
