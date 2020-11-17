@@ -14,6 +14,7 @@
         </dl>
     </div>
     <h1>{{site_data.title}}</h1>
+    <!--
     <div class="model-data panel panel-primary">
         <div class="panel-heading">Primary Site Data</div>
         <dl class="panel-body">
@@ -23,6 +24,17 @@
             {% endfor %}
         </dl>
     </div>
+    -->
+    <div class="model-data panel panel-primary">
+        <div class="panel-heading">Primary Site Data</div>
+        <dl class="panel-body">
+            {% for key,val in site_data_dict.items %}
+                <dt>{{ key }}</dt>
+                <dd>{{ val }}</dd>
+            {% endfor %}
+        </dl>
+    </div>
+
     {% for table in tables %}
         <div class="model-data panel panel-primary">
             <div class="panel-heading">{{table.name}}</div>

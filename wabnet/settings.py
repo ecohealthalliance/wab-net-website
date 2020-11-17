@@ -28,6 +28,7 @@ ALLOWED_HOSTS = ['*']
 INSTALLED_APPS = [
     'wabnet',
     'ec5_tools',
+    'airtable_tools',
     'django_tables2',
     'django.contrib.sites',
     'allauth',
@@ -56,7 +57,9 @@ ROOT_URLCONF = 'wabnet.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+                'django.template.loaders.app_directories.Loader'
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -64,7 +67,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'django.template.context_processors.request',
+                'django.template.context_processors.request'
             ],
         },
     },
@@ -151,3 +154,5 @@ EMAIL_HOST_PASSWORD = os.environ.get('SMTP_PASSWORD')
 DEFAULT_FROM_EMAIL = 'wabnet@eha.io'
 
 DJANGO_TABLES2_TEMPLATE = 'table.html'
+
+AIRTABLE_API_KEY = os.environ.get('AIRTABLE_API_KEY')

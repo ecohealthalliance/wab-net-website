@@ -53,6 +53,7 @@
         </div>
     {% endfor %}
 
+    <!--
     <div class="model-data panel panel-primary">
         <div class="panel-heading">Trapping Event Data</div>
         <dl class="panel-body">
@@ -72,5 +73,135 @@
             {% endfor %}
         </dl>
     </div>
+    -->
+    
+    <div class="model-data panel panel-primary">
+        <div class="panel-heading">Trapping Event Data</div>
+        <dl class="panel-body">
+            <dt>Site</dt>
+            <dd><a href="{% url 'sites' bat_data.parent.parent.uuid %}">{{ bat_data.parent.parent.title }}</a></dd>
+            {% for key,val in trapping_event_data.items %}
+                <dt>{{ key }}</dt>
+                    {% if 'Page' in key %}
+                        <dd><a href="{{val.0}}">{{val.1}}</a></dd>
+                    {% else %}
+                        <dd>{{ val }}</dd>
+                    {% endif %}
+            {% endfor %}
+        </dl>
+    </div>
+
+    {% if 'ID' in barcoding_data %}
+        <div class="model-data panel panel-primary">
+            <div class="panel-heading">Barcoding Data {{ barcoding_data.animal_id }}</div>
+            <dl class="panel-body">
+                {% for key,val in barcoding_data.items %}
+                    {% if val != '' and val != None and key != 'ID' and key != 'CoV Barcoding Data' and key != 'CoV Screening Data' %}
+                        {% if key in special_barcoding_keys %}
+                            <dt>{{ key }}</dt>
+                            <dd>
+                                {% if key == 'Raw host sequence - .ab1 files' %}
+                                    <ul class="list-group">
+                                        {% for fn in barcoding_filename_list_dict.raw_host_sequence_ab1 %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'Raw host sequence - .txt files' %}
+                                    <ul class="list-group">
+                                        {% for fn in barcoding_filename_list_dict.raw_host_sequence_txt %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'Raw host sequence - .pdf files' %}
+                                    <ul class="list-group">
+                                        {% for fn in barcoding_filename_list_dict.raw_host_sequence_pdf %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'Aligned host sequence (.fasta file) submitted to BLAST' %}
+                                    <ul class="list-group">
+                                        {% for fn in barcoding_filename_list_dict.aligned_host_sequence_submitted_to_blast %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'Gel photo - labeled' %}
+                                    <ul class="list-group">
+                                        {% for fn in barcoding_filename_list_dict.gel_photo_labeled %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'Screenshot photo of top 5 BLAST matches' %}
+                                    <ul class="list-group">
+                                        {% for fn in barcoding_filename_list_dict.screenshot_top_5_BLAST_matches %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </dd>
+                        {% else %}
+                            <dt>{{ key }}</dt>
+                            <dd>{{ val }}</dd>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </dl>
+        </div>
+    {% endif %}
+
+    {% if 'ID' in screening_data %}
+        <div class="model-data panel panel-primary">
+            <div class="panel-heading">Screening Data {{ screeing_data.animal_id }}</div>
+            <dl class="panel-body">
+                {% for key,val in screening_data.items %}
+                    {% if key != 'ID' and val != '' and val != None and key != 'id' and key != 'Unique ANIMAL ID (re-entry)'%}
+                        {% if key in special_screening_keys %}
+                            <dt>{{ key }}</dt>
+                            <dd>
+                                {% if key == 'Raw CoV sequence - .ab1 files' %}
+                                    <ul class="list-group">
+                                        {% for fn in screening_filename_list_dict.raw_cov_sequence_ab1 %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'Raw CoV sequence - .txt files' %}
+                                    <ul class="list-group">
+                                        {% for fn in screening_filename_list_dict.raw_cov_sequence_txt %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'Raw CoV sequence - .pdf files' %}
+                                    <ul class="list-group">
+                                        {% for fn in screening_filename_list_dict.raw_cov_sequence_pdf %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'Aligned CoV sequence (.fasta file) submitted to BLAST' %}
+                                    <ul class="list-group">
+                                        {% for fn in screening_filename_list_dict.aligned_cov_sequence_submitted_to_blast %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'Gel photo - labeled' %}
+                                    <ul class="list-group">
+                                        {% for fn in screening_filename_list_dict.gel_photo_labeled %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'Screenshot photo of top 5 BLAST matches' %}
+                                    <ul class="list-group">
+                                        {% for fn in screening_filename_list_dict.screenshot_top_5_BLAST_matches %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </dd>
+                        {% else %}
+                            <dt>{{ key }}</dt>
+                            <dd>{{ val }}</dd>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </dl>
+    {% endif %}
 
 {% endblock %}
