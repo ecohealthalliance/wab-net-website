@@ -426,6 +426,8 @@ def format_dict_data(dict_data, mode):
             url_list = dict_data[key].url.split('/')
             fn = url_list[-1]
             dict_data[key] = (dict_data[key].url, fn)
+        if mode == 'trapping' and 'Number of ' in key and val == None:
+            dict_data[key] = 0
         if val != '' and mode == 'site' and key == 'Site location (GPS coords.)':
             tmp_json = json.loads(val.replace("'",'"'))
             dict_data[key] = 'latitude: ' + str(tmp_json['latitude']) + ', ' + 'longitude: ' + str(tmp_json['longitude'])
