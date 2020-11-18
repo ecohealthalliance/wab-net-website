@@ -21,13 +21,14 @@ import os
 
 import logging
 
+'''
 logger = logging.getLogger(__name__)
 hdlr = logging.FileHandler('./log.txt')
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 hdlr.setFormatter(formatter)
 logger.addHandler(hdlr)
 logger.setLevel(logging.INFO)
-
+'''
 
 child_models = {}
 for name, obj in inspect.getmembers(ec5_models):
