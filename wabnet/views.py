@@ -122,6 +122,8 @@ def splash(request):
     for bat_data in BatData.objects.all():
         bat_family, bat_species = get_bat_species(bat_data)
         samples_by_species[bat_species] = samples_by_species.get(bat_species, 0) + 1
+    samples_by_species_list = [(k,v) for k,v in samples_by_species.items()]
+    samples_by_species = sorted(samples_by_species_list)
     return render(request, 'splash.html', {
         'locations_json': json.dumps(sites),
         'samples_by_species': samples_by_species
