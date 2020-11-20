@@ -17,10 +17,10 @@
         <h4 class="title-text">Study sites</h4>
         <div id="leafletmap"></div>
     </div>
-    {% for species, samples in samples_by_species.items %}
-        <a href="/bats?q={{ species }}"><div class="statistic">
-            <div class="species">{{ species }}</div>
-            <div class="samples">{{ samples }} samples</div>
+    {% for tup in samples_by_species %}
+        <a href="/bats?q={{ tup.0 }}"><div class="statistic">
+            <div class="species">{{ tup.0 }}</div>
+            <div class="samples">{{ tup.1 }} samples</div>
         </div></a>
     {% endfor %}
     <script>

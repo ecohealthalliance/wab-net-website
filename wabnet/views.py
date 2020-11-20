@@ -122,6 +122,8 @@ def splash(request):
     for bat_data in BatData.objects.all():
         bat_family, bat_species = get_bat_species(bat_data)
         samples_by_species[bat_species] = samples_by_species.get(bat_species, 0) + 1
+    samples_by_species_list = [(k,v) for k,v in samples_by_species.items()]
+    samples_by_species = sorted(samples_by_species_list)
     return render(request, 'splash.html', {
         'locations_json': json.dumps(sites),
         'samples_by_species': samples_by_species
@@ -426,6 +428,8 @@ def format_dict_data(dict_data, mode):
             url_list = dict_data[key].url.split('/')
             fn = url_list[-1]
             dict_data[key] = (dict_data[key].url, fn)
+        if mode == 'trapping' and 'Number of ' in key and val == None:
+            dict_data[key] = 0
         if val != '' and mode == 'site' and key == 'Site location (GPS coords.)':
             tmp_json = json.loads(val.replace("'",'"'))
             dict_data[key] = 'latitude: ' + str(tmp_json['latitude']) + ', ' + 'longitude: ' + str(tmp_json['longitude'])
