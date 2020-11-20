@@ -26,9 +26,11 @@
                         {{ value }}
                     {% endif %}
                 </dd>
+                {% if field.verbose_name == 'Specify ' %}
+                    <dt>Bat Species:</dt>
+                    <dd>{{ bat_species }}</dd>
+                {% endif %}
             {% endfor %}
-            <dt>Bat Species:</dt>
-            <dd>{{ bat_species }}</dd>
         </dl>
     </div>
 
@@ -74,7 +76,7 @@
         </dl>
     </div>
     -->
-    
+
     <div class="model-data panel panel-primary">
         <div class="panel-heading">Trapping Event Data</div>
         <dl class="panel-body">
