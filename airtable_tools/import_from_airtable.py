@@ -146,10 +146,16 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
             for idx_records in range(record_batch_size):
                 # read in barcoding data
                 animal_id = json_response_barcode['records'][idx_records]['fields']['Unique ANIMAL ID']
+                # make sure animal_id doesn't appear twice in collection of records
                 if animal_id in animal_id_barcoding_list:
                     raise ValueError('Error: duplicate animal_id {0} in barcoding import'.format(animal_id))
                 else:
                     animal_id_barcoding_list.append(animal_id)
+
+                # save record if animal_id not in collection, skip otherwise
+                test_record = airtable_models.Barcoding.objects.filter(animal_id='{}'.format(animal_id)).first()
+                if test_record != None:
+                    continue
 
                 cov_screening_data_id = json_response_barcode['records'][idx_records]['fields']['CoV Screening Data']
 
@@ -159,12 +165,13 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                     short_var_name = airtable_models.Barcoding.get_name_from_verbose(field)
                     barcoding_field_dict[short_var_name] = json_response_barcode['records'][idx_records]['fields'][field]
 
-                # create the barcoding table
+                # create the barcoding entry
                 create_return_val = airtable_models.Barcoding.objects.create(
                     animal_id='{}'.format(barcoding_field_dict['animal_id']),
                     cov_screening_data='{}'.format(barcoding_field_dict['cov_screening_data'])
                 )
 
+                # get record created above and fill in other available data
                 curr_record = airtable_models.Barcoding.objects.get(animal_id='{}'.format(barcoding_field_dict['animal_id']))
 
                 barcode_cov_screening_data = ''
