@@ -365,9 +365,9 @@ def get_query_bat_list(bat_list, q):
     query_bat_list = []
     for bat in bat_list:
         bat_family, bat_species = get_bat_species(bat)
-        if bat_species == q:
+        if bat_species.lower() == q.lower():
             query_bat_list.append(bat)
-        elif get_bat_attr(bat, 'ANIMAL_ID_eg_PK00') == q:
+        elif get_bat_attr(bat, 'ANIMAL_ID_eg_PK00').lower() == q.lower():
             query_bat_list.append(bat)
     return query_bat_list
 
