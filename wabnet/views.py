@@ -21,14 +21,14 @@ import os
 
 import logging
 
-'''
+
 logger = logging.getLogger(__name__)
 hdlr = logging.FileHandler('./log.txt')
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 hdlr.setFormatter(formatter)
 logger.addHandler(hdlr)
 logger.setLevel(logging.INFO)
-'''
+
 
 child_models = {}
 for name, obj in inspect.getmembers(ec5_models):
@@ -365,9 +365,9 @@ def get_query_bat_list(bat_list, q):
     query_bat_list = []
     for bat in bat_list:
         bat_family, bat_species = get_bat_species(bat)
-        if bat_species == q:
+        if bat_species.lower() == q.lower():
             query_bat_list.append(bat)
-        elif get_bat_attr(bat, 'ANIMAL_ID_eg_PK00') == q:
+        elif get_bat_attr(bat, 'ANIMAL_ID_eg_PK00').lower() == q.lower():
             query_bat_list.append(bat)
     return query_bat_list
 
@@ -570,10 +570,16 @@ def bat_view(request, bat_id):
 
     exclude_fields = ['parent', 'title', 'created_at', 'created_by', 'uuid'] + [f.name for f in bat_family_fields]
     main_data = []
+    main_data_dict = {}
     for field in BatData._meta.get_fields():
         if field.is_relation or field.name in exclude_fields:
             continue
         main_data.append((field, getattr(bat_data, field.name),))
+        filename = ''
+        if 'Picture' in field.name:
+            filename_list = str(getattr(bat_data, field.name)).split('/')
+            filename = filename_list[-1]
+        main_data_dict[field.name] = (field, getattr(bat_data, field.name), filename)
 
     raw_cov_sequence_ab1_filename = "foo"
     special_screening_keys = ['Gel photo - labeled', 'Raw CoV sequence - .txt files',
@@ -591,6 +597,7 @@ def bat_view(request, bat_id):
 
     return render(request, 'bat.html', {
         'main_data': main_data,
+        'main_data_dict': main_data_dict,
         'bat_data': bat_data,
         'bat_species': bat_species,
         'trapping_event_form': TrappingEventForm(instance=bat_data.parent),

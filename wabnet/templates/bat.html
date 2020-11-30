@@ -14,6 +14,8 @@
         </dl>
     </div>
     <h1>{{bat_data.title}}</h1>
+
+    <!--
     <div class="model-data panel panel-primary">
         <div class="panel-heading">Primary Bat Data</div>
         <dl class="panel-body">
@@ -33,7 +35,29 @@
             {% endfor %}
         </dl>
     </div>
+    -->
+    
+    <div class="model-data panel panel-primary">
+        <div class="panel-heading">Primary Bat Data</div>
+        <dl class="panel-body">
+            {% for key, value in main_data_dict.items %}
+                <dt>{{ value.0.verbose_name }}</dt>
+                <dd>
+                    {% if value.1.url|length > 0 %}
+                        <a href="{{ value.1.url }}">{{value.2}}</a>
+                    {% else %}
+                        {{ value.1 }}
+                    {% endif %}
+                </dd>
+                {% if value.0.verbose_name == 'Specify ' %}
+                    <dt>Bat Species:</dt>
+                    <dd>{{ bat_species }}</dd>
+                {% endif %}
+            {% endfor %}
+        </dl>
+    </div>
 
+    <!--
     <div class="model-data panel panel-primary">
         <div class="panel-heading">
             Secondary Data Table
@@ -45,6 +69,7 @@
         {% render_table secondary_data_table %}
         </div>
     </div>
+    -->
 
     {% for table in tables %}
         <div class="model-data panel panel-primary">
@@ -54,28 +79,6 @@
             </div>
         </div>
     {% endfor %}
-
-    <!--
-    <div class="model-data panel panel-primary">
-        <div class="panel-heading">Trapping Event Data</div>
-        <dl class="panel-body">
-            <dt>Site</dt>
-            <dd><a href="{% url 'sites' bat_data.parent.parent.uuid %}">{{ bat_data.parent.parent.title }}</a></dd>
-            {% for field in trapping_event_form %}
-                <dt>{{ field.label_tag }}</dt>
-                <dd>
-                    {% with field.value as value %}
-                    {% if value.url|length > 0 %}
-                        <a href="{{ value.url }}">{{value.url}}</a>
-                    {% else %}
-                        {{ value }}
-                    {% endif %}
-                    {% endwith %}
-                </dd>
-            {% endfor %}
-        </dl>
-    </div>
-    -->
 
     <div class="model-data panel panel-primary">
         <div class="panel-heading">Trapping Event Data</div>
