@@ -14,6 +14,8 @@
         </dl>
     </div>
     <h1>{{bat_data.title}}</h1>
+
+    <!--
     <div class="model-data panel panel-primary">
         <div class="panel-heading">Primary Bat Data</div>
         <dl class="panel-body">
@@ -27,6 +29,27 @@
                     {% endif %}
                 </dd>
                 {% if field.verbose_name == 'Specify ' %}
+                    <dt>Bat Species:</dt>
+                    <dd>{{ bat_species }}</dd>
+                {% endif %}
+            {% endfor %}
+        </dl>
+    </div>
+    -->
+    
+    <div class="model-data panel panel-primary">
+        <div class="panel-heading">Primary Bat Data</div>
+        <dl class="panel-body">
+            {% for key, value in main_data_dict.items %}
+                <dt>{{ value.0.verbose_name }}</dt>
+                <dd>
+                    {% if value.1.url|length > 0 %}
+                        <a href="{{ value.1.url }}">{{value.2}}</a>
+                    {% else %}
+                        {{ value.1 }}
+                    {% endif %}
+                </dd>
+                {% if value.0.verbose_name == 'Specify ' %}
                     <dt>Bat Species:</dt>
                     <dd>{{ bat_species }}</dd>
                 {% endif %}
@@ -47,7 +70,7 @@
         </div>
     </div>
     -->
-    
+
     {% for table in tables %}
         <div class="model-data panel panel-primary">
             <div class="panel-heading">{{table.name}}</div>
