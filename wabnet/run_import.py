@@ -34,7 +34,7 @@ def sync_new_data(request):
     import_data = EpiCollectImport(import_type="sync")
     import_data.save()
     import_from_epicollect(ec5_models, only_new_data=True)
-    #import_from_airtable(airtable_models, only_new_data=True)
+    import_from_airtable(airtable_models, only_new_data=True)
     import_data.success = True
     import_data.save()
     return HttpResponse('success')
