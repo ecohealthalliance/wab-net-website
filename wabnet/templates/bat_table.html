@@ -15,7 +15,8 @@
               <input type="checkbox" name="hasRecording" {% if request.GET.hasRecording == 'on' %}checked{% endif %}> Has Recording
             </label>
           </div>
-          <button type="submit" class="btn btn-primary">Search</button>
+          <button type="submit" class="btn btn-primary">Search</button><br>
+          <p><b>Note: Use full species names (e.g. Myotis blythii) when using search bar. Also, columns can be organized by clicking header.</b></p>
         </form>
     </div>
     {% render_table table %}
