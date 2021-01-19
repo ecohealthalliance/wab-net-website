@@ -141,6 +141,42 @@
                                             <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
                                         {% endfor %}
                                     </ul>
+                                {% elif key == 'RE-RUN Raw host sequence - .ab1 files' %}
+                                    <ul class="list-group">
+                                        {% for fn in barcoding_filename_list_dict.rerun_raw_host_sequence_ab1 %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'RE-RUN Raw host sequence - .txt files' %}
+                                    <ul class="list-group">
+                                        {% for fn in barcoding_filename_list_dict.rerun_raw_host_sequence_txt %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'RE-RUN Raw host sequence - .pdf files' %}
+                                    <ul class="list-group">
+                                        {% for fn in barcoding_filename_list_dict.rerun_raw_host_sequence_pdf %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'RE-RUN Aligned host sequence (.fasta file) submitted to BLAST' %}
+                                    <ul class="list-group">
+                                        {% for fn in barcoding_filename_list_dict.rerun_aligned_host_sequence_submitted_to_blast %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'RE-RUN Gel photo - labeled' %}
+                                    <ul class="list-group">
+                                        {% for fn in barcoding_filename_list_dict.rerun_gel_photo_labeled %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'RE-RUN Screenshot photo of top 5 BLAST matches' %}
+                                    <ul class="list-group">
+                                        {% for fn in barcoding_filename_list_dict.rerun_screenshot_top_5_BLAST_matches %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
                                 {% endif %}
                             </dd>
                         {% else %}
@@ -158,7 +194,7 @@
             <div class="panel-heading">Screening Data {{ screeing_data.animal_id }}</div>
             <dl class="panel-body">
                 {% for key,val in screening_data.items %}
-                    {% if key != 'ID' and val != '' and val != None and key != 'id' and key != 'Unique ANIMAL ID (re-entry)'%}
+                    {% if key != 'ID' and val != '' and val != None and key != 'id' and key != 'ANIMAL ID (re-entry)'%}
                         {% if key in special_screening_keys %}
                             <dt>{{ key }}</dt>
                             <dd>

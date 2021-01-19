@@ -484,7 +484,13 @@ def bat_view(request, bat_id):
     special_barcoding_keys_short = ['gel_photo_labeled', 'raw_host_sequence_txt',
                                     'raw_host_sequence_ab1', 'raw_host_sequence_pdf',
                                     'aligned_host_sequence_submitted_to_blast',
-                                    'screenshot_top_5_BLAST_matches']
+                                    'screenshot_top_5_BLAST_matches',
+                                    'rerun_gel_photo_labeled',
+                                    'rerun_raw_host_sequence_txt',
+                                    'rerun_raw_host_sequence_ab1',
+                                    'rerun_raw_host_sequence_pdf',
+                                    'rerun_aligned_host_sequence_submitted_to_blast',
+                                    'rerun_screenshot_top_5_BLAST_matches']
     if airtable_models.Barcoding.objects.filter(animal_id=curr_animal_id).count() > 0:
         barcoding_data = model_to_dict(airtable_models.Barcoding.objects.get(animal_id=curr_animal_id))
 
@@ -601,7 +607,13 @@ def bat_view(request, bat_id):
                               'Raw host sequence - .ab1 files',
                               'Raw host sequence - .pdf files',
                               'Aligned host sequence (.fasta file) submitted to BLAST',
-                              'Screenshot photo of top 5 BLAST matches']
+                              'Screenshot photo of top 5 BLAST matches',
+                              'RE-RUN Gel photo - labeled',
+                              'RE-RUN Raw host sequence - .txt files',
+                              'RE-RUN Raw host sequence - .ab1 files',
+                              'RE-RUN Raw host sequence - .pdf files',
+                              'RE-RUN Aligned host sequence (.fasta file) submitted to BLAST',
+                              'RE-RUN Screenshot photo of top 5 BLAST matches']
 
     trapping_event_data = make_verbose_dict(bat_data.parent)
 
