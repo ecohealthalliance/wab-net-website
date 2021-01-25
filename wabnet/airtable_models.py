@@ -37,7 +37,7 @@ class Barcoding(models.Model):
     percent_identity_top_BLAST_match = models.FloatField(verbose_name='Percent identity (%) for top BLAST match', null=True)
     screenshot_top_5_BLAST_matches = models.TextField(verbose_name='Screenshot photo of top 5 BLAST matches')
     #cov_screening_data = models.ForeignKey(Georgia_screening, on_delete=models.CASCADE, verbose_name='CoV Screening Data')
-    rerun_sample = models.TextField(verbose_name='Was sample RE-RUN', null=True)
+    rerun_sample = models.TextField(verbose_name='Was sample RE-RUN?', null=True)
     rerun_date_rtpcr = models.DateTimeField(verbose_name='RE-RUN Date of RT-PCR', null=True)
     rerun_date_gel_electrophoresis = models.DateTimeField(verbose_name='RE-RUN Date of gel electrophoresis', null=True)
     rerun_gel_electrophoresis_results = models.TextField(verbose_name='RE-RUN Gel electrophoresis result', null=True)
