@@ -79,6 +79,7 @@ def import_from_airtable(airtable_models, only_new_data=False):
     # try importing
     try:
         import_from_airtable_transaction(airtable_models, only_new_data)
+
     except Exception as e:
         # import failed so move backed-up media back
         if not only_new_data and os.path.exists(airtable_media_backup_path):
@@ -99,7 +100,6 @@ def import_from_airtable(airtable_models, only_new_data=False):
             for rm_fn in os.listdir(airtable_media_backup_path):
                 full_rm_path = os.path.join(airtable_media_backup_path, rm_fn)
                 os.unlink(full_rm_path)
-
 
 def get_airtable_batch(json_response_barcode, at_id, page_size, token):
     url = 'https://api.airtable.com/v0/{0}/Host%20DNA%20Barcoding%20Data?view=Grid%20view&pageSize={1}'.format(at_id, page_size)
@@ -145,7 +145,7 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
 
             for idx_records in range(record_batch_size):
                 # read in barcoding data
-                animal_id = json_response_barcode['records'][idx_records]['fields']['Unique ANIMAL ID']
+                animal_id = json_response_barcode['records'][idx_records]['fields']['ANIMAL ID']
                 # make sure animal_id doesn't appear twice in collection of records
                 if animal_id in animal_id_barcoding_list:
                     raise ValueError('Error: duplicate animal_id {0} in barcoding import'.format(animal_id))
