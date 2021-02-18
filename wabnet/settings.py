@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'dbbackup',
     'django_extensions',
 ]
 
@@ -158,6 +157,3 @@ DEFAULT_FROM_EMAIL = 'wabnet@eha.io'
 DJANGO_TABLES2_TEMPLATE = 'table.html'
 
 AIRTABLE_API_KEY = os.environ.get('AIRTABLE_API_KEY')
-
-DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
-DBBACKUP_STORAGE_OPTIONS = {'location': '/shared/backups'}
