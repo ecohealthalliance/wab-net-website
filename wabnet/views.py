@@ -293,15 +293,19 @@ def get_bat_attr(bat_data, attr_base_name):
 
 @login_required
 def download_occurrence_data(request):
+    logger.info("*** download_occurrence_data: entering... ***")
     user_viewable_countries = [
         group.name.replace('View ', '') for group in request.user.groups.all()]
+    logger.info("*** download_occurrence_data: flag 1 ***")
     if len(user_viewable_countries) == 0:
         bats = BatData.objects.none()
+    logger.info("*** download_occurrence_data: flag 2 ***")
     if 'all countries' in user_viewable_countries:
         bats = BatData.objects.all()
     else:
         bats = BatData.objects.filter(
             parent__parent__country__in=user_viewable_countries)
+    logger.info("*** download_occurrence_data: flag 3 ***")
     rows = []
     for bat_data in bats:
         bat_family, bat_species = get_bat_species(bat_data)
@@ -323,19 +327,31 @@ def download_occurrence_data(request):
             "decimalLongitude": coords['longitude'],
             "geodeticDatum": "WGS 84"
         })
+    logger.info("*** download_occurrence_data: flag 4 ***")
     zip_buffer = BytesIO()
+    logger.info("*** download_occurrence_data: flag 5 ***")
     zipf = zipfile.ZipFile(zip_buffer, 'a')
+    logger.info("*** download_occurrence_data: flag 6 ***")
     table = OccurrenceTable(rows)
+    logger.info("*** download_occurrence_data: flag 7 ***")
     response = HttpResponse(content_type='application/octet-stream')
+    logger.info("*** download_occurrence_data: flag 8 ***")
     zipf.writestr("occurrences.csv", TableExport('csv', table).export())
+    logger.info("*** download_occurrence_data: flag 9 ***")
     # fix for Linux zip files read in Windows
     for file in zipf.filelist:
         file.create_system = 0
+    logger.info("*** download_occurrence_data: flag 10 ***")
     zipf.close()
+    logger.info("*** download_occurrence_data: flag 11 ***")
     response = HttpResponse()
+    logger.info("*** download_occurrence_data: flag 12 ***")
     response['Content-Disposition'] = 'attachment; filename=export.zip'
+    logger.info("*** download_occurrence_data: flag 13 ***")
     zip_buffer.seek(0)
+    logger.info("*** download_occurrence_data: flag 14 ***")
     response.write(zip_buffer.read())
+    logger.info("*** download_occurrence_data: flag 15 ***")
     return response
 
 def get_recording_parent_ids():
