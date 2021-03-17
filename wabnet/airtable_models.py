@@ -132,6 +132,7 @@ class Screening(models.Model):
     rerun_query_cover_top_BLAST_match = models.FloatField(verbose_name='RE-RUN Query cover (%) for top BLAST match', null=True)
     rerun_percent_identity_top_BLAST_match = models.FloatField(verbose_name='RE-RUN Percent identity (%) for top BLAST match', null=True)
     rerun_screenshot_top_5_BLAST_matches = models.TextField(verbose_name='RE-RUN Screenshot photo of top 5 BLAST matches', null=True)
+    parent = models.ForeignKey(Barcoding, on_delete=models.CASCADE)
 
 
     # FIX: don't duplicate this method for all classes!!
