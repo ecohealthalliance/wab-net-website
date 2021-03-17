@@ -154,6 +154,10 @@ class Screening(models.Model):
                     verbose_name = getattr(f, 'verbose_name')
         return verbose_name
 
+    def get_country(self):
+        return self.parent.country
+
+
 class RawCovSequenceAb1(models.Model):
     airtable_id = models.TextField()
     url = models.TextField()
