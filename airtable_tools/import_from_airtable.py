@@ -169,7 +169,6 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                 create_return_val = airtable_models.Barcoding.objects.create(
                     animal_id='{}'.format(barcoding_field_dict['animal_id']),
                     cov_screening_data='{}'.format(barcoding_field_dict['cov_screening_data'])
-                    country = at_tup[1]
                 )
 
                 # get record created above and fill in other available data
@@ -199,6 +198,7 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                     raise ValueError('Error: No associated CoV Screening Data for read of {}'.format(barcoding_field_dict['animal_id']))
 
                 # record won't be created if you don't save
+                setattr(curr_record, 'country', at_tup[1])
                 curr_record.save()
 
                 instance = airtable_models.Barcoding.objects.all()
