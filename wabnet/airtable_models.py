@@ -19,6 +19,7 @@ logger.setLevel(logging.INFO)
 
 class Barcoding(models.Model):
     animal_id = models.TextField(verbose_name='ANIMAL ID', null=False)
+    country = models.TextField(verbose_name='Country', null=False, default='not set')
     date_rtpcr = models.DateTimeField(verbose_name='Date of RT-PCR', null=True)
     date_gel_electrophoresis = models.DateTimeField(verbose_name='Date of gel electrophoresis', null=True)
     gel_electrophoresis_results = models.TextField(verbose_name='Gel electrophoresis result')
@@ -73,10 +74,13 @@ class Barcoding(models.Model):
                     verbose_name = getattr(f, 'verbose_name')
         return verbose_name
 
+    def get_country(self):
+        return self.country
 
 class Screening(models.Model):
     animal_id = models.TextField(verbose_name='ANIMAL ID')
     animal_id_reentry = models.TextField(verbose_name='ANIMAL ID (re-entry)')
+    country = models.TextField(verbose_name='Country', null=False, default='not set')
     sample_id = models.TextField(verbose_name='SAMPLE ID')
     sample_type = models.TextField(verbose_name='Sample type')
     sample_storage_media = models.TextField(verbose_name='Sample storage media')
@@ -150,6 +154,10 @@ class Screening(models.Model):
                 if hasattr(f, 'verbose_name'):
                     verbose_name = getattr(f, 'verbose_name')
         return verbose_name
+
+    def get_country(self):
+        return self.country
+
 
 class RawCovSequenceAb1(models.Model):
     airtable_id = models.TextField()

@@ -207,43 +207,46 @@ import zipfile
 from six import BytesIO
 @login_required
 def download_all_data(request):
-    user_viewable_countries = [
-        group.name.replace('View ', '') for group in request.user.groups.all()]
-    zip_buffer = BytesIO()
-    zipf = zipfile.ZipFile(zip_buffer, 'a')
-    for model_name, child_model in list(child_models.items()) + [
-        ('SiteData', SiteData),
-        ('SecondaryData', SecondaryData)] + list(airtable_download_models.items()):
-        class MyTable(django_tables2.Table):
-            if model_name == 'Barcoding' or model_name == 'Screening':
-                name = model_name
+    try:
+        user_viewable_countries = [
+            group.name.replace('View ', '') for group in request.user.groups.all()]
+        zip_buffer = BytesIO()
+        zipf = zipfile.ZipFile(zip_buffer, 'a')
+        for model_name, child_model in list(child_models.items()) + [
+            ('SiteData', SiteData),
+            ('SecondaryData', SecondaryData)] + list(airtable_download_models.items()):
+            class MyTable(django_tables2.Table):
+                if model_name == 'Barcoding' or model_name == 'Screening':
+                    name = model_name
+                else:
+                    name = child_model.name
+                class Meta:
+                    model = child_model
+                    template_name = 'django_tables2/bootstrap.html'
+                    exclude = ('id', 'uuid', 'parent',)
+            if len(user_viewable_countries) == 0:
+                objects = child_model.objects.none()
+            elif 'all countries' in user_viewable_countries:
+                objects = child_model.objects.all()
             else:
-                name = child_model.name
-            class Meta:
-                model = child_model
-                template_name = 'django_tables2/bootstrap.html'
-                exclude = ('id', 'uuid', 'parent',)
-        if len(user_viewable_countries) == 0:
-            objects = child_model.objects.none()
-        elif 'all countries' in user_viewable_countries:
-            objects = child_model.objects.all()
-        else:
-            objects = []
-            for obj in child_model.objects.all():
-                if obj.get_country() in user_viewable_countries:
-                    objects.append(obj)
-        table = MyTable(objects)
-        response = HttpResponse(content_type='application/octet-stream')
-        zipf.writestr(model_name + ".csv", TableExport('csv', table).export())
-    # fix for Linux zip files read in Windows
-    for file in zipf.filelist:
-        file.create_system = 0
-    zipf.close()
-    response = HttpResponse()
-    response['Content-Disposition'] = 'attachment; filename=export.zip'
-    zip_buffer.seek(0)
-    response.write(zip_buffer.read())
-    return response
+                objects = []
+                for obj in child_model.objects.all():
+                    if obj.get_country() in user_viewable_countries:
+                        objects.append(obj)
+            table = MyTable(objects)
+            response = HttpResponse(content_type='application/octet-stream')
+            zipf.writestr(model_name + ".csv", TableExport('csv', table).export())
+        # fix for Linux zip files read in Windows
+        for file in zipf.filelist:
+            file.create_system = 0
+        zipf.close()
+        response = HttpResponse()
+        response['Content-Disposition'] = 'attachment; filename=export.zip'
+        zip_buffer.seek(0)
+        response.write(zip_buffer.read())
+        return response
+    except Exception as e:
+        logger.error('failed csv download: ' + str(e))
 
 class OccurrenceTable(django_tables2.Table):
     occurrenceID = django_tables2.Column()
