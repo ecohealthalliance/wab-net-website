@@ -78,6 +78,7 @@ class Barcoding(models.Model):
         return self.country
 
 class Screening(models.Model):
+    country = models.TextField(verbose_name='Country', null=False, default='not set')
     animal_id = models.TextField(verbose_name='ANIMAL ID')
     animal_id_reentry = models.TextField(verbose_name='ANIMAL ID (re-entry)')
     sample_id = models.TextField(verbose_name='SAMPLE ID')
@@ -154,8 +155,8 @@ class Screening(models.Model):
                     verbose_name = getattr(f, 'verbose_name')
         return verbose_name
 
-#    def get_country(self):
-#        return self.parent.country
+    def get_country(self):
+        return self.country
 
 
 class RawCovSequenceAb1(models.Model):
