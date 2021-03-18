@@ -78,9 +78,9 @@ class Barcoding(models.Model):
         return self.country
 
 class Screening(models.Model):
-    country = models.TextField(verbose_name='Country', null=False, default='not set')
     animal_id = models.TextField(verbose_name='ANIMAL ID')
     animal_id_reentry = models.TextField(verbose_name='ANIMAL ID (re-entry)')
+    country = models.TextField(verbose_name='Country', null=False, default='not set')
     sample_id = models.TextField(verbose_name='SAMPLE ID')
     sample_type = models.TextField(verbose_name='Sample type')
     sample_storage_media = models.TextField(verbose_name='Sample storage media')
