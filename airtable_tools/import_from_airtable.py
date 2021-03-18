@@ -132,7 +132,7 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
 
     page_size = 100   # number of records to be taken in a batch (separated by
                       #   offset) (max = 100)
-    airtable_tups = [('appAEhvMc4tSS32ll','Georgia'), ('appVb5vInUwnVTQKQ', 'Jordan')]
+    airtable_tups = [('appAEhvMc4tSS32ll','Georgia (GE)'), ('appVb5vInUwnVTQKQ', 'Jordan (JO)')]
     json_response_barcode = {}
     for at_tup in airtable_tups:
         (json_response_barcode, record_batch_size, headers) = get_airtable_batch(json_response_barcode, at_tup[0], page_size, token)
