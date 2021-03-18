@@ -153,8 +153,8 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                       #   offset) (max = 100)
     airtable_keys = ['appAEhvMc4tSS32ll', 'appVb5vInUwnVTQKQ']
     json_response_barcode = {}
-    for curr_key in airtable_keys:
-        (json_response_barcode, record_batch_size, headers) = get_airtable_batch(json_response_barcode, curr_key, page_size, token)
+    for curr_at_key in airtable_keys:
+        (json_response_barcode, record_batch_size, headers) = get_airtable_batch(json_response_barcode, curr_at_key, page_size, token)
 
         animal_id_barcoding_list = []
         animal_id_screening_list = []
@@ -227,7 +227,7 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                 if len(cov_screening_data_id) > 1:
                     raise ValueError('Error: got multiple screeing records for AirTable read of {}'.format(cov_screening_data_id[0]))
 
-                url = 'https://api.airtable.com/v0/{0}/CoV%20Screening%20Data/{1}'.format(curr_key, cov_screening_data_id[0])
+                url = 'https://api.airtable.com/v0/{0}/CoV%20Screening%20Data/{1}'.format(curr_at_key, cov_screening_data_id[0])
                 r_screening = requests.get(url, headers=headers)
                 if r_screening.status_code != 200:
                     raise ValueError('Error: got return code {0} for AirTable read of {1}'.format(r_screening.status_code, cov_screening_data_id[0]))
@@ -300,7 +300,7 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                 instance = airtable_models.Screening.objects.all()
 
             if 'offset' in json_response_barcode:
-                (json_response_barcode, record_batch_size, headers) = get_airtable_batch(json_response_barcode, curr_key, page_size, token)
+                (json_response_barcode, record_batch_size, headers) = get_airtable_batch(json_response_barcode, curr_at_key, page_size, token)
             else:
                 done = True
 
