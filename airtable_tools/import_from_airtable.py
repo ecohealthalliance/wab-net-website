@@ -275,6 +275,7 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                     elif curr_key != 'animal_id':
                         setattr(curr_record, curr_key, screening_field_dict[curr_key])
                 # record won't be created if you don't save
+                setattr(curr_record, 'country', at_tup[1])
                 curr_record.save()
 
                 instance = airtable_models.Screening.objects.all()
