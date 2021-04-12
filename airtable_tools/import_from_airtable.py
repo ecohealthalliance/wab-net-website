@@ -171,11 +171,6 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                 else:
                     animal_id_barcoding_list.append(animal_id)
 
-                # save record if animal_id not in collection, skip otherwise
-                test_record = airtable_models.Barcoding.objects.filter(animal_id='{}'.format(animal_id)).first()
-                if test_record != None:
-                    continue
-
                 cov_screening_data_id = json_response_barcode['records'][idx_records]['fields']['CoV Screening Data']
 
                 # collect field names in a dictionary
@@ -184,11 +179,14 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                     short_var_name = airtable_models.Barcoding.get_name_from_verbose(field)
                     barcoding_field_dict[short_var_name] = json_response_barcode['records'][idx_records]['fields'][field]
 
-                # create the barcoding entry
-                create_return_val = airtable_models.Barcoding.objects.create(
-                    animal_id='{}'.format(barcoding_field_dict['animal_id']),
-                    cov_screening_data='{}'.format(barcoding_field_dict['cov_screening_data'])
-                )
+                # create record if none exists
+                test_record = airtable_models.Barcoding.objects.filter(animal_id='{}'.format(animal_id)).first()
+                if test_record == None:
+                    # create the barcoding entry
+                    create_return_val = airtable_models.Barcoding.objects.create(
+                        animal_id='{}'.format(barcoding_field_dict['animal_id']),
+                        cov_screening_data='{}'.format(barcoding_field_dict['cov_screening_data'])
+                    )
 
                 # get record created above and fill in other available data
                 curr_record = airtable_models.Barcoding.objects.get(animal_id='{}'.format(barcoding_field_dict['animal_id']))
@@ -256,11 +254,13 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                 elif airtable_models.Barcoding.objects.filter(animal_id='{}'.format(screening_field_dict['animal_id'])).count() > 1:
                     raise ValueError("*** Error: got multiple records back for animal_id = {}".format(screening_field_dict['animal_id']))
 
-                # create screening table(s)
-                airtable_models.Screening.objects.create(
-                    animal_id = '{}'.format(screening_field_dict['animal_id']),
-                    barcoding_record=airtable_models.Barcoding.objects.get(animal_id='{}'.format(screening_field_dict['animal_id']))
-                )
+                # create screening record if none exists
+                test_record = airtable_models.Screening.objects.filter(animal_id='{}'.format(animal_id)).first()
+                if test_record == None:
+                    airtable_models.Screening.objects.create(
+                        animal_id = '{}'.format(screening_field_dict['animal_id']),
+                        barcoding_record=airtable_models.Barcoding.objects.get(animal_id='{}'.format(screening_field_dict['animal_id']))
+                    )
 
                 curr_record = airtable_models.Screening.objects.get(animal_id='{}'.format(screening_field_dict['animal_id']))
 
