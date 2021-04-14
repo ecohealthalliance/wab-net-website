@@ -156,3 +156,5 @@ DEFAULT_FROM_EMAIL = 'wabnet@eha.io'
 DJANGO_TABLES2_TEMPLATE = 'table.html'
 
 AIRTABLE_API_KEY = os.environ.get('AIRTABLE_API_KEY')
+
+DEFAULT_AUTO_FIELD='django.db.models.AutoField'
