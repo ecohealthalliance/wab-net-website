@@ -89,7 +89,7 @@ class Screening(models.Model):
     RNA_extraction_method = models.TextField(verbose_name='RNA extraction method')
     date_rtpcr_1 = models.DateTimeField(verbose_name='Date of RT-PCR', null=True)
     date_gel_electrophoresis = models.DateTimeField(verbose_name='Date of gel electrophoresis', null=True)
-    positive_control = models.TextField(verbose_name='Positive control')
+    positive_control = models.TextField(verbose_name='Positive control', null=True)
     negative_control = models.TextField(verbose_name='Negative control')
     gel_electrophoresis_results = models.TextField(verbose_name='Gel electrophoresis result')
     gel_electrophoresis_notes_comments = models.TextField(verbose_name='Gel electrophoresis notes')
