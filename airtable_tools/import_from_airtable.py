@@ -165,6 +165,7 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
             for idx_records in range(record_batch_size):
                 # read in barcoding data
                 animal_id = json_response_barcode['records'][idx_records]['fields']['ANIMAL ID']
+                #print(animal_id)
                 # make sure animal_id doesn't appear twice in collection of records
                 if animal_id in animal_id_barcoding_list:
                     raise ValueError('Error: duplicate animal_id {0} in barcoding import'.format(animal_id))
