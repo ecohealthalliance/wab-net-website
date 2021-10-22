@@ -524,6 +524,7 @@ def bat_view(request, bat_id):
                                     'rerun_screenshot_top_5_BLAST_matches',
                                     'rerun_aligned_cov_sequence_submitted_to_blast',
                                     'rerun_gel_photo_labeled',
+                                    'rerun2_raw_cov_sequence_ab1',
                                     'rerun2_raw_cov_sequence_txt',
                                     'rerun2_raw_cov_sequence_pdf',
                                     'rerun2_screenshot_top_5_BLAST_matches',
