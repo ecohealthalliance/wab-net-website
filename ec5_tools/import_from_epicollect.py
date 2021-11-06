@@ -17,18 +17,34 @@ from django.contrib.auth.models import Group
 from django.db import transaction
 from django.db.backends.signals import connection_created
 import time
+from django.core.mail import send_mail
 
 #SECONDS_PER_REQUEST = 1
 SECONDS_PER_REQUEST = 2
 
+error_email_list = []
+
 last_request_time = datetime.datetime.now()
 def throttled_request_get(*args, **kwargs):
     global last_request_time
+    global error_email_list
     seconds_since_last_request = (datetime.datetime.now() - last_request_time).total_seconds()
     if seconds_since_last_request < SECONDS_PER_REQUEST:
         time.sleep(SECONDS_PER_REQUEST - seconds_since_last_request)
     last_request_time = datetime.datetime.now()
-    return requests.get(*args, **kwargs)
+    try:
+        r = requests.get(*args, **kwargs)
+    except requests.exceptions.RequestException as e:
+        error_email_list.append((str(e), args, kwargs))
+        r = False
+    return r
+
+def error_list_to_str(error_list):
+    str_out = ''
+    for curr_error in error_list:
+        str_tmp = curr_error[0] + '\n' + curr_error[1] + '\n' + curr_error[2] + '\n\n'
+        str_out += str_tmp
+    return str_out
 
 def import_from_epicollect(ec5_models, only_new_data=False):
     # Rolling back the database does not restore the EC5 media directory,
@@ -63,6 +79,8 @@ def refresh_ec5_token(ec5_client_id, ec5_secret_key, current_token = None):
 
 @transaction.atomic
 def import_from_epicollect_transaction(ec5_models, only_new_data):
+    global error_email_list
+    get_failed = False
     ec5_model_dict = {}
     root_model = None
     for name, obj in inspect.getmembers(ec5_models):
@@ -127,6 +145,9 @@ def import_from_epicollect_transaction(ec5_models, only_new_data):
                 headers={
                     'Authorization': 'Bearer ' + token['access_token']
                 })
+            if not response:
+                get_failed = True
+                continue
             response.raise_for_status()
             response_json = response.json()
             all_entries += response_json['data']['entries']
@@ -158,6 +179,9 @@ def import_from_epicollect_transaction(ec5_models, only_new_data):
                             headers={
                                 'Authorization': 'Bearer ' + token['access_token']
                             })
+                        if not response:
+                            get_failed = True
+                            continue
                         response.raise_for_status()
                         file_values[format_name(key)] = (value, ContentFile(response.content),)
                     else:
@@ -191,6 +215,14 @@ def import_from_epicollect_transaction(ec5_models, only_new_data):
                 raise
             objects_created += 1
             EntityKeywords(content_object=model_instance, keywords=keywords).save()
+
+    # email errors if any throttled_request_get failed
+    if get_failed:
+        send_mail('WAB-NET-Website sync failed',
+                  error_list_to_str(error_email_list),
+                  'young@ecohealthalliance.org',
+                  ['young@ecohealthalliance.org'],
+                  fail_silently=False)
 
     # Create group for each Country
     for site in ec5_models.SiteData.objects.all():
