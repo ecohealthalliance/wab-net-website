@@ -32,11 +32,11 @@ def throttled_request_get(*args, **kwargs):
     if seconds_since_last_request < SECONDS_PER_REQUEST:
         time.sleep(SECONDS_PER_REQUEST - seconds_since_last_request)
     last_request_time = datetime.datetime.now()
-    try:
-        r = requests.get(*args, **kwargs)
-    except requests.exceptions.RequestException as e:
-        error_email_list.append((str(e), args, kwargs))
-        r = False
+    #try:
+    r = requests.get(*args, **kwargs)
+    #except requests.exceptions.RequestException as e:
+    #    error_email_list.append((str(e), args, kwargs))
+    #    r = False
     return r
 
 def error_list_to_str(error_list):
@@ -145,9 +145,9 @@ def import_from_epicollect_transaction(ec5_models, only_new_data):
                 headers={
                     'Authorization': 'Bearer ' + token['access_token']
                 })
-            if not response:
-                get_failed = True
-                continue
+            #if not response:
+            #    get_failed = True
+            #    continue
             response.raise_for_status()
             response_json = response.json()
             all_entries += response_json['data']['entries']
@@ -179,9 +179,10 @@ def import_from_epicollect_transaction(ec5_models, only_new_data):
                             headers={
                                 'Authorization': 'Bearer ' + token['access_token']
                             })
-                        if not response:
-                            get_failed = True
-                            continue
+
+                        #if not response:
+                        #    get_failed = True
+                        #    continue
                         response.raise_for_status()
                         file_values[format_name(key)] = (value, ContentFile(response.content),)
                     else:
@@ -217,12 +218,12 @@ def import_from_epicollect_transaction(ec5_models, only_new_data):
             EntityKeywords(content_object=model_instance, keywords=keywords).save()
 
     # email errors if any throttled_request_get failed
-    if get_failed:
-        send_mail('WAB-NET-Website sync failed',
-                  error_list_to_str(error_email_list),
-                  'young@ecohealthalliance.org',
-                  ['young@ecohealthalliance.org'],
-                  fail_silently=False)
+    #if get_failed:
+    #    send_mail('WAB-NET-Website sync failed',
+    #              error_list_to_str(error_email_list),
+    #              'young@ecohealthalliance.org',
+    #              ['young@ecohealthalliance.org'],
+    #              fail_silently=False)
 
     # Create group for each Country
     for site in ec5_models.SiteData.objects.all():
