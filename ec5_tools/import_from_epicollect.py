@@ -33,7 +33,7 @@ def throttled_request_get(*args, **kwargs):
         time.sleep(SECONDS_PER_REQUEST - seconds_since_last_request)
     last_request_time = datetime.datetime.now()
     #try:
-    r = requests.get(*args, **kwargs)
+    r = requests.get(*args, **kwargs, timeout=None)
     #except requests.exceptions.RequestException as e:
     #    error_email_list.append((str(e), args, kwargs))
     #    r = False
@@ -161,10 +161,16 @@ def import_from_epicollect_transaction(ec5_models, only_new_data):
                     continue
                 if re.match(r"\d+_.*", key) and format_name(key) not in ec5_model_dict:
                     if isinstance(model._meta.get_field(format_name(key)), models.FileField):
-                        if value.endswith('.jpg'):
+                        if value.lower().endswith('.jpg'):
                             params = {
                                 'type': 'photo',
                                 'format': 'entry_original',
+                                'name': value
+                            }
+                        elif value.lower().endswith('.mp4'):
+                            params = {
+                                'type': 'video',
+                                'format': 'video',
                                 'name': value
                             }
                         else:
@@ -183,6 +189,10 @@ def import_from_epicollect_transaction(ec5_models, only_new_data):
                         #if not response:
                         #    get_failed = True
                         #    continue
+                        # temp logging for files
+                        #with open('/tmp/import_file.log','w') as import_file_out:
+                        #    for file_key,file_value in file_values.items():
+                        #        import_file_out.write('{0}: {1}\n'.format(file_key, file_value))
                         response.raise_for_status()
                         file_values[format_name(key)] = (value, ContentFile(response.content),)
                     else:
