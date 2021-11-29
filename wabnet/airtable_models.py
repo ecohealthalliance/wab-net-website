@@ -55,7 +55,7 @@ class Barcoding(models.Model):
     rerun_percent_identity_top_BLAST_match = models.FloatField(verbose_name='RE-RUN Percent identity (%) for top BLAST match', null=True)
     rerun_screenshot_top_5_BLAST_matches = models.TextField(verbose_name='RE-RUN Screenshot photo of top 5 BLAST matches', null=True)
 
-    rerun2_sample = models.TextField(verbose_name='Was sample RE-RUN again ?', null=True)
+    rerun2_sample = models.TextField(verbose_name='Was sample RE-RUN again?', null=True)
     rerun2_date_rtpcr = models.DateTimeField(verbose_name='RE-RUN 2 Date of RT-PCR', null=True)
     rerun2_date_gel_electrophoresis = models.DateTimeField(verbose_name='RE-RUN 2 Date of gel electrophoresis', null=True)
     rerun2_gel_electrophoresis_results = models.TextField(verbose_name='RE-RUN 2 Gel electrophoresis result', null=True)
