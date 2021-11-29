@@ -54,6 +54,24 @@ class Barcoding(models.Model):
     rerun_query_cover_top_BLAST_match = models.FloatField(verbose_name='RE-RUN Query cover (%) for top BLAST match', null=True)
     rerun_percent_identity_top_BLAST_match = models.FloatField(verbose_name='RE-RUN Percent identity (%) for top BLAST match', null=True)
     rerun_screenshot_top_5_BLAST_matches = models.TextField(verbose_name='RE-RUN Screenshot photo of top 5 BLAST matches', null=True)
+
+    rerun2_sample = models.TextField(verbose_name='Was sample RE-RUN 2 again ?', null=True)
+    rerun2_date_rtpcr = models.DateTimeField(verbose_name='RE-RUN 2 Date of RT-PCR', null=True)
+    rerun2_date_gel_electrophoresis = models.DateTimeField(verbose_name='RE-RUN 2 Date of gel electrophoresis', null=True)
+    rerun2_gel_electrophoresis_results = models.TextField(verbose_name='RE-RUN 2 Gel electrophoresis result', null=True)
+    rerun2_gel_photo_labeled = models.TextField(verbose_name='RE-RUN 2 Gel photo - labeled', null=True)
+    rerun2_date_sequenced = models.DateTimeField(verbose_name='RE-RUN 2 Date of sequencing', null=True)
+    rerun2_sequencing_results = models.TextField(verbose_name='RE-RUN 2 Sequencing result', null=True)
+    rerun2_sequencing_results_other = models.TextField(verbose_name='RE-RUN 2 Sequencing result - if "Other"', null=True)
+    rerun2_raw_host_sequence_txt = models.TextField(verbose_name='RE-RUN 2 Raw host sequence - .txt files', null=True)
+    rerun2_raw_host_sequence_ab1 = models.TextField(verbose_name='RE-RUN 2 Raw host sequence - .ab1 files', null=True)
+    rerun2_raw_host_sequence_pdf = models.TextField(verbose_name='RE-RUN 2 Raw host sequence - .pdf files', null=True)
+    rerun2_aligned_cov_seuqence_submitted_to_blast = models.TextField(verbose_name='RE-RUN 2 Aligned host sequence (.fasta file) submitted to BLAST', null=True)
+    rerun2_host_identified_blast = models.TextField(verbose_name='RE-RUN 2 Host species identified using BLAST', null=True)
+    rerun2_query_cover_top_BLAST_match = models.FloatField(verbose_name='RE-RUN 2 Query cover (%) for top BLAST match', null=True)
+    rerun2_percent_identity_top_BLAST_match = models.FloatField(verbose_name='RE-RUN 2 Percent identity (%) for top BLAST match', null=True)
+    rerun2_screenshot_top_5_BLAST_matches = models.TextField(verbose_name='RE-RUN 2 Screenshot photo of top 5 BLAST matches', null=True)
+
     cov_screening_data = models.TextField(verbose_name='CoV Screening Data', null=False)
 
     def get_name_from_verbose(verbose_name):
