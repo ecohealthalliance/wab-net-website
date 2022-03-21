@@ -19,6 +19,11 @@ logger.setLevel(logging.INFO)
 
 class Barcoding(models.Model):
     animal_id = models.TextField(verbose_name='ANIMAL ID', null=False)
+    sample_id = models.TextField(verbose_name='SAMPLE ID', null=True)
+    sample_type = models.TextField(verbose_name='Sample type', null=True)
+    date_RNA_extraction = models.DateTimeField(verbose_name='Date of RNA extraction', null=True)
+    rerun_sample_id = models.TextField(verbose_name='RE-RUN SAMPLE ID', null=True)
+    rerun_sample_type = models.TextField(verbose_name='RE-RUN Sample type', null=True)
     country = models.TextField(verbose_name='Country', null=False, default='not set')
     date_rtpcr = models.DateTimeField(verbose_name='Date of RT-PCR', null=True)
     date_gel_electrophoresis = models.DateTimeField(verbose_name='Date of gel electrophoresis', null=True)
