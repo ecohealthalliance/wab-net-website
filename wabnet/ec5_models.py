@@ -126,7 +126,7 @@ class BatData(models.Model):
     created_by = models.TextField()
     title = models.TextField()
     parent = models.ForeignKey(TrappingEvent, on_delete=models.CASCADE)
-    x_64_ANIMAL_ID_eg_PK00_x = models.TextField(verbose_name='ANIMAL ID        [eg. PK0001] ')
+    x_64_ANIMAL_ID_eg_PK00_x = models.TextField(verbose_name='ANIMAL ID')
     x_65_Bat_family_x = models.TextField(verbose_name='Bat family')
     x_66_Specify_x = models.TextField(verbose_name='Specify ')
     x_67_Family_Emballonur_x = models.TextField(verbose_name='Family: Emballonuridae')
@@ -194,7 +194,7 @@ class BatData(models.Model):
 
     def get_long_name(self, short_name):
         if short_name == 'ANIMAL_ID':
-            targ = '_ANIMAL_ID_eg_PK00_x'
+            targ = '_ANIMAL_ID_x'
         else:
             raise ValueError('ec5_models.py:BatData():get_long_name: short name __{}__ not supported'.format(short_name))
 

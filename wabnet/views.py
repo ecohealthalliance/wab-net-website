@@ -264,12 +264,12 @@ class OccurrenceTable(django_tables2.Table):
 
 def get_bat_attr(bat_data, attr_base_name):
 
-    valid_attr_list = ['Site_location_GPS', 'ANIMAL_ID_eg_PK00',
+    valid_attr_list = ['Site_location_GPS', 'ANIMAL_ID',
                        'Bat_prepared_as', 'Date_of_trapping']
     if attr_base_name not in valid_attr_list:
         raise ValueError('views.py: get_bat_attr(): {} not supported'.format(attr_base_name))
 
-    if attr_base_name == 'ANIMAL_ID_eg_PK00' or attr_base_name == 'Bat_prepared_as':
+    if attr_base_name == 'ANIMAL_ID' or attr_base_name == 'Bat_prepared_as':
         attr_source = bat_data
     elif attr_base_name == 'Date_of_trapping':
         attr_source = bat_data.parent
@@ -480,7 +480,7 @@ def bat_view(request, bat_id):
     bat_family, bat_species = get_bat_species(bat_data)
     ### FIX: this need to be generic so it doens't need to be updated
     ###      every time they change the survey!!
-    curr_animal_id = get_bat_attr(bat_data, 'ANIMAL_ID_eg_PK00')
+    curr_animal_id = get_bat_attr(bat_data, 'ANIMAL_ID')
     #curr_animal_id = getattr(bat_data, 'x_63_ANIMAL_ID_eg_PK00_x')
     barcoding_data = {}
     barcoding_filename_list_dict = {}
