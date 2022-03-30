@@ -157,11 +157,12 @@ def import_from_epicollect_transaction(ec5_models, only_new_data):
             values = {}
             file_values = {}
             for key, value in entry.items():
-                if not value:
-                    continue
                 if re.match(r"\d+_.*", key) and format_name(key) not in ec5_model_dict:
                     if isinstance(model._meta.get_field(format_name(key)), models.FileField):
-                        if value.lower().endswith('.jpg'):
+                        if value == '':
+                            # skip missing values
+                            continue
+                        elif value.lower().endswith('.jpg'):
                             params = {
                                 'type': 'photo',
                                 'format': 'entry_original',

@@ -126,7 +126,7 @@ class BatData(models.Model):
     created_by = models.TextField()
     title = models.TextField()
     parent = models.ForeignKey(TrappingEvent, on_delete=models.CASCADE)
-    x_64_ANIMAL_ID_eg_PK00_x = models.TextField(verbose_name='ANIMAL ID')
+    x_64_ANIMAL_ID_x = models.TextField(verbose_name='ANIMAL ID')
     x_65_Bat_family_x = models.TextField(verbose_name='Bat family')
     x_66_Specify_x = models.TextField(verbose_name='Specify ')
     x_67_Family_Emballonur_x = models.TextField(verbose_name='Family: Emballonuridae')

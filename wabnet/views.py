@@ -309,7 +309,7 @@ def download_occurrence_data(request):
     for bat_data in bats:
         bat_family, bat_species = get_bat_species(bat_data)
         coords = json.loads(str(get_bat_attr(bat_data, 'Site_location_GPS')).replace("'", '"'))
-        animal_id = get_bat_attr(bat_data, 'ANIMAL_ID_eg_PK00')
+        animal_id = get_bat_attr(bat_data, 'ANIMAL_ID')
         rows.append({
             "basisOfRecord": "PreservedSpecimen" if get_bat_attr(bat_data, 'Bat_prepared_as') == "Yes" else "Occurrence",
             "taxonRank": "species",
@@ -370,7 +370,7 @@ def get_query_bat_list(bat_list, q):
         bat_family, bat_species = get_bat_species(bat)
         if bat_species.lower() == q.lower():
             query_bat_list.append(bat)
-        elif get_bat_attr(bat, 'ANIMAL_ID_eg_PK00').lower() == q.lower():
+        elif get_bat_attr(bat, 'ANIMAL_ID').lower() == q.lower():
             query_bat_list.append(bat)
     return query_bat_list
 
