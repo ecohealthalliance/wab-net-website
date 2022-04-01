@@ -54,12 +54,13 @@ def import_from_epicollect(ec5_models, only_new_data=False):
     try:
         import_from_epicollect_transaction(ec5_models, only_new_data)
     except:
-        if not only_new_data and os.path.exists(ec5_media_backup_path):
-            shutil.move(ec5_media_backup_path, ec5_media_path)
+        if not only_new_data:
+            if not os.path.exists(ec5_media_backup_path):
+                os.mkdir(ec5_media_backup_path)
+            all_files = os.listdir(ec5_media_backup_path)
+            for curr_file in all_files:
+                shutil.move(os.path.join(ec5_media_backup_path,curr_file), os.path.join(ec5_media_path,curr_file))
         raise
-    if not only_new_data:
-        if os.path.exists(ec5_media_backup_path):
-            shutil.rmtree(ec5_media_backup_path)
 
 def refresh_ec5_token(ec5_client_id, ec5_secret_key, current_token = None):
     # If we have no token, gives us a new token.
@@ -114,8 +115,13 @@ def import_from_epicollect_transaction(ec5_models, only_new_data):
         # Move EC5 media to backup in preparation for deletion
         # when the transaction succeeds.
         ec5_media_path = os.path.join(settings.MEDIA_ROOT, 'ec5')
+        ec5_media_backup_path = os.path.join(settings.MEDIA_ROOT, 'ec5backup')
         if os.path.exists(ec5_media_path):
-            shutil.move(ec5_media_path, os.path.join(settings.MEDIA_ROOT, 'ec5backup'))
+            if not os.path.exists(ec5_media_backup_path):
+                os.mkdir(ec5_media_backup_path)
+            all_files = os.listdir(ec5_media_path)
+            for curr_file in all_files:
+                shutil.move(os.path.join(ec5_media_path,curr_file), os.path.join(ec5_media_backup_path,curr_file))
         # Delete all previously imported data
         root_model.objects.all().delete()
 
