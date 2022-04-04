@@ -170,7 +170,7 @@ class BatData(models.Model):
     x_109_Sample_2_STORAGE_x = models.TextField(verbose_name='Sample 2: STORAGE MEDIA')
     x_110_Collect_URINE_UR_x = models.TextField(verbose_name='Collect URINE (UR) in RNALater?')
     x_111_Collect_BLOOD_x = models.TextField(verbose_name='Collect BLOOD?')
-    x_113_Estimate_microli_x = models.IntegerField(verbose_name='Estimate microliters of blood drawn', blank=True, null=True)
+    x_113_Estimate_microli_x = models.TextField(verbose_name='Estimate microliters of blood drawn', null=True)
     x_114_Whole_blood_WB_s_x = models.TextField(verbose_name='Whole blood (WB) stored in RNAlater')
     x_115_Whole_blood_WB_s_x = models.TextField(verbose_name='Whole blood (WB) stored in TRIzol ')
     x_116_Blood_serum_SER_x = models.TextField(verbose_name='Blood serum (SER) stored in PBS')
