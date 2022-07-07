@@ -119,7 +119,12 @@ def splash(request):
                 'accessible': all_countries or site_data.country in user_viewable_countries,
             })
     samples_by_species = {}
-    for bat_data in BatData.objects.all():
+    if 'all countries' in user_viewable_countries:
+        allowed_bats = BatData.objects.all()
+    else:
+        allowed_bats = BatData.objects.filter(
+            parent__parent__country__in=user_viewable_countries)
+    for bat_data in allowed_bats:
         bat_family, bat_species = get_bat_species(bat_data)
         samples_by_species[bat_species] = samples_by_species.get(bat_species, 0) + 1
     samples_by_species_list = [(k,v) for k,v in samples_by_species.items()]
