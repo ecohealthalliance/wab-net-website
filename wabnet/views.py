@@ -237,13 +237,8 @@ def download_all_data(request):
                 objects = []
                 for obj in child_model.objects.all():
                     if obj.get_country() in user_viewable_countries:
-                        # set null fields to empty string so table doesn't fill in '--'
-                        for field in obj._meta.get_all_field_names():
-                            if getattr(obj, field) == None:
-                                setattr(obj, field, '')
-                        obj.save()
-
                         objects.append(obj)
+
             table = MyTable(objects)
             response = HttpResponse(content_type='application/octet-stream')
             zipf.writestr(model_name + ".csv", TableExport('csv', table).export())
