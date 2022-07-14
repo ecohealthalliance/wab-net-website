@@ -229,6 +229,8 @@ def download_all_data(request):
                     model = child_model
                     template_name = 'django_tables2/bootstrap.html'
                     exclude = ('id', 'uuid', 'parent',)
+                    empty_text = ('')
+                    default = ('')
             if len(user_viewable_countries) == 0:
                 objects = child_model.objects.none()
             elif 'all countries' in user_viewable_countries:
