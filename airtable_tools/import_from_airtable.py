@@ -162,16 +162,22 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
         done = False
         while not done:
 
+            no_CoV_screening_ids = []
             for idx_records in range(record_batch_size):
                 # read in barcoding data
                 animal_id = json_response_barcode['records'][idx_records]['fields']['ANIMAL ID']
+                #print(animal_id)
                 # make sure animal_id doesn't appear twice in collection of records
                 if animal_id in animal_id_barcoding_list:
                     raise ValueError('Error: duplicate animal_id {0} in barcoding import'.format(animal_id))
                 else:
                     animal_id_barcoding_list.append(animal_id)
 
-                cov_screening_data_id = json_response_barcode['records'][idx_records]['fields']['CoV Screening Data']
+                #cov_screening_data_id = json_response_barcode['records'][idx_records]['fields']['CoV Screening Data']
+                cov_screening_data_id = json_response_barcode['records'][idx_records]['fields'].get('CoV Screening Data')
+                if not cov_screening_data_id:
+                    no_CoV_screening_ids.append(animal_id)
+                    continue
 
                 # collect field names in a dictionary
                 barcoding_field_dict = {}
@@ -298,6 +304,13 @@ def import_from_airtable_transaction(airtable_models, only_new_data):
                 curr_record.save()
 
                 instance = airtable_models.Screening.objects.all()
+
+            if len(no_CoV_screening_ids) > 0:
+                send_mail('WAB-NET-Website failed to import CoV Screening Data for some animal IDs',
+                          '\n'.join(no_CoV_screening_ids),
+                          'young@ecohealthalliance.org',
+                          ['young@ecohealthalliance.org'],
+                          fail_silently=False)
 
             if 'offset' in json_response_barcode:
                 (json_response_barcode, record_batch_size, headers) = get_airtable_batch(json_response_barcode, curr_at_key, page_size, token)

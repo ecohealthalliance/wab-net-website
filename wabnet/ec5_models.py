@@ -96,13 +96,13 @@ class TrappingEvent(models.Model):
     x_42_Date_traps_closed_x = models.TextField(verbose_name='Date traps closed (may extend a day)')
     x_43_Time_trapping_eve_x = models.TextField(verbose_name='Time trapping event ended (nets closed)')
     x_44_Weather_condition_x = models.TextField(verbose_name='Weather conditions during trapping event')
-    x_46_Number_of_26_mete_x = models.IntegerField(verbose_name='Number of 2.6 meter nets', blank=True, null=True)
-    x_47_Number_of_4_meter_x = models.IntegerField(verbose_name='Number of 4 meter nets', blank=True, null=True)
-    x_48_Number_of_6_meter_x = models.IntegerField(verbose_name='Number of 6 meter nets', blank=True, null=True)
-    x_49_Number_of_9_meter_x = models.IntegerField(verbose_name='Number of 9 meter nets', blank=True, null=True)
-    x_50_Number_of_12_mete_x = models.IntegerField(verbose_name='Number of 12 meter nets', blank=True, null=True)
-    x_51_Number_of_18_mete_x = models.IntegerField(verbose_name='Number of 18 meter nets', blank=True, null=True)
-    x_52_Number_of_harp_tr_x = models.IntegerField(verbose_name='Number of harp traps', blank=True, null=True)
+    x_46_Number_of_26_mete_x = models.TextField(verbose_name='Number of 2.6 meter nets', null=True)
+    x_47_Number_of_4_meter_x = models.TextField(verbose_name='Number of 4 meter nets', null=True)
+    x_48_Number_of_6_meter_x = models.TextField(verbose_name='Number of 6 meter nets', null=True)
+    x_49_Number_of_9_meter_x = models.TextField(verbose_name='Number of 9 meter nets', null=True)
+    x_50_Number_of_12_mete_x = models.TextField(verbose_name='Number of 12 meter nets', null=True)
+    x_51_Number_of_18_mete_x = models.TextField(verbose_name='Number of 18 meter nets', null=True)
+    x_52_Number_of_harp_tr_x = models.TextField(verbose_name='Number of harp traps', null=True)
     x_54_Page_1_x = models.FileField(upload_to='ec5/', verbose_name='Page 1')
     x_55_Page_2_x = models.FileField(upload_to='ec5/', verbose_name='Page 2')
     x_56_Page_3_x = models.FileField(upload_to='ec5/', verbose_name='Page 3')
@@ -126,7 +126,7 @@ class BatData(models.Model):
     created_by = models.TextField()
     title = models.TextField()
     parent = models.ForeignKey(TrappingEvent, on_delete=models.CASCADE)
-    x_64_ANIMAL_ID_eg_PK00_x = models.TextField(verbose_name='ANIMAL ID        [eg. PK0001] ')
+    x_64_ANIMAL_ID_x = models.TextField(verbose_name='ANIMAL ID')
     x_65_Bat_family_x = models.TextField(verbose_name='Bat family')
     x_66_Specify_x = models.TextField(verbose_name='Specify ')
     x_67_Family_Emballonur_x = models.TextField(verbose_name='Family: Emballonuridae')
@@ -170,7 +170,7 @@ class BatData(models.Model):
     x_109_Sample_2_STORAGE_x = models.TextField(verbose_name='Sample 2: STORAGE MEDIA')
     x_110_Collect_URINE_UR_x = models.TextField(verbose_name='Collect URINE (UR) in RNALater?')
     x_111_Collect_BLOOD_x = models.TextField(verbose_name='Collect BLOOD?')
-    x_113_Estimate_microli_x = models.IntegerField(verbose_name='Estimate microliters of blood drawn', blank=True, null=True)
+    x_113_Estimate_microli_x = models.TextField(verbose_name='Estimate microliters of blood drawn', null=True)
     x_114_Whole_blood_WB_s_x = models.TextField(verbose_name='Whole blood (WB) stored in RNAlater')
     x_115_Whole_blood_WB_s_x = models.TextField(verbose_name='Whole blood (WB) stored in TRIzol ')
     x_116_Blood_serum_SER_x = models.TextField(verbose_name='Blood serum (SER) stored in PBS')
@@ -194,7 +194,7 @@ class BatData(models.Model):
 
     def get_long_name(self, short_name):
         if short_name == 'ANIMAL_ID':
-            targ = '_ANIMAL_ID_eg_PK00_x'
+            targ = '_ANIMAL_ID_x'
         else:
             raise ValueError('ec5_models.py:BatData():get_long_name: short name __{}__ not supported'.format(short_name))
 

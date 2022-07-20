@@ -119,7 +119,12 @@ def splash(request):
                 'accessible': all_countries or site_data.country in user_viewable_countries,
             })
     samples_by_species = {}
-    for bat_data in BatData.objects.all():
+    if 'all countries' in user_viewable_countries:
+        allowed_bats = BatData.objects.all()
+    else:
+        allowed_bats = BatData.objects.filter(
+            parent__parent__country__in=user_viewable_countries)
+    for bat_data in allowed_bats:
         bat_family, bat_species = get_bat_species(bat_data)
         samples_by_species[bat_species] = samples_by_species.get(bat_species, 0) + 1
     samples_by_species_list = [(k,v) for k,v in samples_by_species.items()]
@@ -224,6 +229,8 @@ def download_all_data(request):
                     model = child_model
                     template_name = 'django_tables2/bootstrap.html'
                     exclude = ('id', 'uuid', 'parent',)
+                    empty_text = ('')
+                    default = ('')
             if len(user_viewable_countries) == 0:
                 objects = child_model.objects.none()
             elif 'all countries' in user_viewable_countries:
@@ -233,6 +240,7 @@ def download_all_data(request):
                 for obj in child_model.objects.all():
                     if obj.get_country() in user_viewable_countries:
                         objects.append(obj)
+
             table = MyTable(objects)
             response = HttpResponse(content_type='application/octet-stream')
             zipf.writestr(model_name + ".csv", TableExport('csv', table).export())
@@ -264,12 +272,12 @@ class OccurrenceTable(django_tables2.Table):
 
 def get_bat_attr(bat_data, attr_base_name):
 
-    valid_attr_list = ['Site_location_GPS', 'ANIMAL_ID_eg_PK00',
+    valid_attr_list = ['Site_location_GPS', 'ANIMAL_ID',
                        'Bat_prepared_as', 'Date_of_trapping']
     if attr_base_name not in valid_attr_list:
         raise ValueError('views.py: get_bat_attr(): {} not supported'.format(attr_base_name))
 
-    if attr_base_name == 'ANIMAL_ID_eg_PK00' or attr_base_name == 'Bat_prepared_as':
+    if attr_base_name == 'ANIMAL_ID' or attr_base_name == 'Bat_prepared_as':
         attr_source = bat_data
     elif attr_base_name == 'Date_of_trapping':
         attr_source = bat_data.parent
@@ -309,7 +317,7 @@ def download_occurrence_data(request):
     for bat_data in bats:
         bat_family, bat_species = get_bat_species(bat_data)
         coords = json.loads(str(get_bat_attr(bat_data, 'Site_location_GPS')).replace("'", '"'))
-        animal_id = get_bat_attr(bat_data, 'ANIMAL_ID_eg_PK00')
+        animal_id = get_bat_attr(bat_data, 'ANIMAL_ID')
         rows.append({
             "basisOfRecord": "PreservedSpecimen" if get_bat_attr(bat_data, 'Bat_prepared_as') == "Yes" else "Occurrence",
             "taxonRank": "species",
@@ -370,7 +378,7 @@ def get_query_bat_list(bat_list, q):
         bat_family, bat_species = get_bat_species(bat)
         if bat_species.lower() == q.lower():
             query_bat_list.append(bat)
-        elif get_bat_attr(bat, 'ANIMAL_ID_eg_PK00').lower() == q.lower():
+        elif get_bat_attr(bat, 'ANIMAL_ID').lower() == q.lower():
             query_bat_list.append(bat)
     return query_bat_list
 
@@ -480,7 +488,7 @@ def bat_view(request, bat_id):
     bat_family, bat_species = get_bat_species(bat_data)
     ### FIX: this need to be generic so it doens't need to be updated
     ###      every time they change the survey!!
-    curr_animal_id = get_bat_attr(bat_data, 'ANIMAL_ID_eg_PK00')
+    curr_animal_id = get_bat_attr(bat_data, 'ANIMAL_ID')
     #curr_animal_id = getattr(bat_data, 'x_63_ANIMAL_ID_eg_PK00_x')
     barcoding_data = {}
     barcoding_filename_list_dict = {}
@@ -493,7 +501,13 @@ def bat_view(request, bat_id):
                                     'rerun_raw_host_sequence_ab1',
                                     'rerun_raw_host_sequence_pdf',
                                     'rerun_aligned_host_sequence_submitted_to_blast',
-                                    'rerun_screenshot_top_5_BLAST_matches']
+                                    'rerun_screenshot_top_5_BLAST_matches',
+                                    'rerun2_gel_photo_labeled',
+                                    'rerun2_raw_host_sequence_txt',
+                                    'rerun2_raw_host_sequence_ab1',
+                                    'rerun2_raw_host_sequence_pdf',
+                                    'rerun2_aligned_host_sequence_submitted_to_blast',
+                                    'rerun2_screenshot_top_5_BLAST_matches']
     if airtable_models.Barcoding.objects.filter(animal_id=curr_animal_id).count() > 0:
         barcoding_data = model_to_dict(airtable_models.Barcoding.objects.get(animal_id=curr_animal_id))
 
@@ -517,7 +531,13 @@ def bat_view(request, bat_id):
                                     'rerun_raw_cov_sequence_pdf',
                                     'rerun_screenshot_top_5_BLAST_matches',
                                     'rerun_aligned_cov_sequence_submitted_to_blast',
-                                    'rerun_gel_photo_labeled']
+                                    'rerun_gel_photo_labeled',
+                                    'rerun2_raw_cov_sequence_ab1',
+                                    'rerun2_raw_cov_sequence_txt',
+                                    'rerun2_raw_cov_sequence_pdf',
+                                    'rerun2_screenshot_top_5_BLAST_matches',
+                                    'rerun2_aligned_cov_sequence_submitted_to_blast',
+                                    'rerun2_gel_photo_labeled']
     if airtable_models.Screening.objects.filter(animal_id=curr_animal_id).count() > 0:
         curr_obj = airtable_models.Screening.objects.get(animal_id='{}'.format(curr_animal_id))
         screening_data = model_to_dict(airtable_models.Screening.objects.get(animal_id=curr_animal_id))
@@ -605,7 +625,12 @@ def bat_view(request, bat_id):
                               'RE-RUN Raw CoV sequence - .ab1 files',
                               'RE-RUN Raw CoV sequence - .pdf files',
                               'RE-RUN Aligned CoV sequence (.fasta file) submitted to BLAST',
-                              'RE-RUN Screenshot photo of top 5 BLAST matches']
+                              'RE-RUN Screenshot photo of top 5 BLAST matches',
+                              'RE-RUN 2 Gel photo - labeled', 'RE-RUN Raw CoV sequence - .txt files',
+                              'RE-RUN 2 Raw CoV sequence - .ab1 files',
+                              'RE-RUN 2 Raw CoV sequence - .pdf files',
+                              'RE-RUN 2 Aligned CoV sequence (.fasta file) submitted to BLAST',
+                              'RE-RUN 2 Screenshot photo of top 5 BLAST matches']
     special_barcoding_keys = ['Gel photo - labeled', 'Raw host sequence - .txt files',
                               'Raw host sequence - .ab1 files',
                               'Raw host sequence - .pdf files',
@@ -616,7 +641,13 @@ def bat_view(request, bat_id):
                               'RE-RUN Raw host sequence - .ab1 files',
                               'RE-RUN Raw host sequence - .pdf files',
                               'RE-RUN Aligned host sequence (.fasta file) submitted to BLAST',
-                              'RE-RUN Screenshot photo of top 5 BLAST matches']
+                              'RE-RUN Screenshot photo of top 5 BLAST matches',
+                              'RE-RUN 2 Gel photo - labeled',
+                              'RE-RUN 2 Raw host sequence - .txt files',
+                              'RE-RUN 2 Raw host sequence - .ab1 files',
+                              'RE-RUN 2 Raw host sequence - .pdf files',
+                              'RE-RUN 2 Aligned host sequence (.fasta file) submitted to BLAST',
+                              'RE-RUN 2 Screenshot photo of top 5 BLAST matches']
 
     trapping_event_data = make_verbose_dict(bat_data.parent)
 

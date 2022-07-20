@@ -17,18 +17,34 @@ from django.contrib.auth.models import Group
 from django.db import transaction
 from django.db.backends.signals import connection_created
 import time
+from django.core.mail import send_mail
 
 #SECONDS_PER_REQUEST = 1
 SECONDS_PER_REQUEST = 2
 
+error_email_list = []
+
 last_request_time = datetime.datetime.now()
 def throttled_request_get(*args, **kwargs):
     global last_request_time
+    global error_email_list
     seconds_since_last_request = (datetime.datetime.now() - last_request_time).total_seconds()
     if seconds_since_last_request < SECONDS_PER_REQUEST:
         time.sleep(SECONDS_PER_REQUEST - seconds_since_last_request)
     last_request_time = datetime.datetime.now()
-    return requests.get(*args, **kwargs)
+    #try:
+    r = requests.get(*args, **kwargs, timeout=None)
+    #except requests.exceptions.RequestException as e:
+    #    error_email_list.append((str(e), args, kwargs))
+    #    r = False
+    return r
+
+def error_list_to_str(error_list):
+    str_out = ''
+    for curr_error in error_list:
+        str_tmp = curr_error[0] + '\n' + curr_error[1] + '\n' + curr_error[2] + '\n\n'
+        str_out += str_tmp
+    return str_out
 
 def import_from_epicollect(ec5_models, only_new_data=False):
     # Rolling back the database does not restore the EC5 media directory,
@@ -38,12 +54,13 @@ def import_from_epicollect(ec5_models, only_new_data=False):
     try:
         import_from_epicollect_transaction(ec5_models, only_new_data)
     except:
-        if not only_new_data and os.path.exists(ec5_media_backup_path):
-            shutil.move(ec5_media_backup_path, ec5_media_path)
+        if not only_new_data:
+            if not os.path.exists(ec5_media_backup_path):
+                os.mkdir(ec5_media_backup_path)
+            all_files = os.listdir(ec5_media_backup_path)
+            for curr_file in all_files:
+                shutil.move(os.path.join(ec5_media_backup_path,curr_file), os.path.join(ec5_media_path,curr_file))
         raise
-    if not only_new_data:
-        if os.path.exists(ec5_media_backup_path):
-            shutil.rmtree(ec5_media_backup_path)
 
 def refresh_ec5_token(ec5_client_id, ec5_secret_key, current_token = None):
     # If we have no token, gives us a new token.
@@ -63,6 +80,8 @@ def refresh_ec5_token(ec5_client_id, ec5_secret_key, current_token = None):
 
 @transaction.atomic
 def import_from_epicollect_transaction(ec5_models, only_new_data):
+    global error_email_list
+    get_failed = False
     ec5_model_dict = {}
     root_model = None
     for name, obj in inspect.getmembers(ec5_models):
@@ -96,8 +115,13 @@ def import_from_epicollect_transaction(ec5_models, only_new_data):
         # Move EC5 media to backup in preparation for deletion
         # when the transaction succeeds.
         ec5_media_path = os.path.join(settings.MEDIA_ROOT, 'ec5')
+        ec5_media_backup_path = os.path.join(settings.MEDIA_ROOT, 'ec5backup')
         if os.path.exists(ec5_media_path):
-            shutil.move(ec5_media_path, os.path.join(settings.MEDIA_ROOT, 'ec5backup'))
+            if not os.path.exists(ec5_media_backup_path):
+                os.mkdir(ec5_media_backup_path)
+            all_files = os.listdir(ec5_media_path)
+            for curr_file in all_files:
+                shutil.move(os.path.join(ec5_media_path,curr_file), os.path.join(ec5_media_backup_path,curr_file))
         # Delete all previously imported data
         root_model.objects.all().delete()
 
@@ -127,6 +151,9 @@ def import_from_epicollect_transaction(ec5_models, only_new_data):
                 headers={
                     'Authorization': 'Bearer ' + token['access_token']
                 })
+            #if not response:
+            #    get_failed = True
+            #    continue
             response.raise_for_status()
             response_json = response.json()
             all_entries += response_json['data']['entries']
@@ -136,14 +163,21 @@ def import_from_epicollect_transaction(ec5_models, only_new_data):
             values = {}
             file_values = {}
             for key, value in entry.items():
-                if not value:
-                    continue
                 if re.match(r"\d+_.*", key) and format_name(key) not in ec5_model_dict:
                     if isinstance(model._meta.get_field(format_name(key)), models.FileField):
-                        if value.endswith('.jpg'):
+                        if value == '':
+                            # skip missing values
+                            continue
+                        elif value.lower().endswith('.jpg'):
                             params = {
                                 'type': 'photo',
                                 'format': 'entry_original',
+                                'name': value
+                            }
+                        elif value.lower().endswith('.mp4'):
+                            params = {
+                                'type': 'video',
+                                'format': 'video',
                                 'name': value
                             }
                         else:
@@ -158,6 +192,14 @@ def import_from_epicollect_transaction(ec5_models, only_new_data):
                             headers={
                                 'Authorization': 'Bearer ' + token['access_token']
                             })
+
+                        #if not response:
+                        #    get_failed = True
+                        #    continue
+                        # temp logging for files
+                        #with open('/tmp/import_file.log','w') as import_file_out:
+                        #    for file_key,file_value in file_values.items():
+                        #        import_file_out.write('{0}: {1}\n'.format(file_key, file_value))
                         response.raise_for_status()
                         file_values[format_name(key)] = (value, ContentFile(response.content),)
                     else:
@@ -191,6 +233,14 @@ def import_from_epicollect_transaction(ec5_models, only_new_data):
                 raise
             objects_created += 1
             EntityKeywords(content_object=model_instance, keywords=keywords).save()
+
+    # email errors if any throttled_request_get failed
+    #if get_failed:
+    #    send_mail('WAB-NET-Website sync failed',
+    #              error_list_to_str(error_email_list),
+    #              'young@ecohealthalliance.org',
+    #              ['young@ecohealthalliance.org'],
+    #              fail_silently=False)
 
     # Create group for each Country
     for site in ec5_models.SiteData.objects.all():
