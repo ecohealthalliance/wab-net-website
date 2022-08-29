@@ -507,7 +507,13 @@ def bat_view(request, bat_id):
                                     'rerun2_raw_host_sequence_ab1',
                                     'rerun2_raw_host_sequence_pdf',
                                     'rerun2_aligned_host_sequence_submitted_to_blast',
-                                    'rerun2_screenshot_top_5_BLAST_matches']
+                                    'rerun2_screenshot_top_5_BLAST_matches',
+                                    'rerun3_gel_photo_labeled',
+                                    'rerun3_raw_host_sequence_txt',
+                                    'rerun3_raw_host_sequence_ab1',
+                                    'rerun3_raw_host_sequence_pdf',
+                                    'rerun3_aligned_host_sequence_submitted_to_blast',
+                                    'rerun3_screenshot_top_5_BLAST_matches']
     if airtable_models.Barcoding.objects.filter(animal_id=curr_animal_id).count() > 0:
         barcoding_data = model_to_dict(airtable_models.Barcoding.objects.get(animal_id=curr_animal_id))
 
@@ -647,7 +653,13 @@ def bat_view(request, bat_id):
                               'RE-RUN 2 Raw host sequence - .ab1 files',
                               'RE-RUN 2 Raw host sequence - .pdf files',
                               'RE-RUN 2 Aligned host sequence (.fasta file) submitted to BLAST',
-                              'RE-RUN 2 Screenshot photo of top 5 BLAST matches']
+                              'RE-RUN 2 Screenshot photo of top 5 BLAST matches',
+                              'RE-RUN 3 Gel photo - labeled',
+                              'RE-RUN 3 Raw host sequence - .txt files',
+                              'RE-RUN 3 Raw host sequence - .ab1 files',
+                              'RE-RUN 3 Raw host sequence - .pdf files',
+                              'RE-RUN 3 Aligned host sequence (.fasta file) submitted to BLAST',
+                              'RE-RUN 3 Screenshot photo of top 5 BLAST matches']
 
     trapping_event_data = make_verbose_dict(bat_data.parent)
 
