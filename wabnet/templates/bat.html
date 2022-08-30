@@ -214,6 +214,14 @@
                                             <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
                                         {% endfor %}
                                     </ul>
+
+                                {% elif key == 'RE-RUN 3 Gel photo - labeled' %}
+                                    <ul class="list-group">
+                                        {% for fn in barcoding_filename_list_dict.rerun3_gel_photo_labeled %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+
                                 {% endif %}
                             </dd>
                         {% else %}
