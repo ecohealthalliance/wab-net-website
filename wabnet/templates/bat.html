@@ -214,10 +214,47 @@
                                             <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
                                         {% endfor %}
                                     </ul>
-
+                                <!--
                                 {% elif key == 'RE-RUN 3 Gel photo - labeled' %}
                                     <ul class="list-group">
                                         {% for fn in barcoding_filename_list_dict.rerun3_gel_photo_labeled %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                -->
+                                {% elif key == 'RE-RUN 3 Raw host sequence - .ab1 files' %}
+                                    <ul class="list-group">
+                                        {% for fn in barcoding_filename_list_dict.rerun3_raw_host_sequence_ab1 %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'RE-RUN 3 Raw host sequence - .txt files' %}
+                                    <ul class="list-group">
+                                        {% for fn in barcoding_filename_list_dict.rerun3_raw_host_sequence_txt %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'RE-RUN 3 Raw host sequence - .pdf files' %}
+                                    <ul class="list-group">
+                                        {% for fn in barcoding_filename_list_dict.rerun3_raw_host_sequence_pdf %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'RE-RUN 3 Aligned host sequence (.fasta file) submitted to BLAST' %}
+                                    <ul class="list-group">
+                                        {% for fn in barcoding_filename_list_dict.rerun3_aligned_host_sequence_submitted_to_blast %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'RE-RUN 3 Gel photo - labeled' %}
+                                    <ul class="list-group">
+                                        {% for fn in barcoding_filename_list_dict.rerun3_gel_photo_labeled %}
+                                            <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif key == 'RE-RUN 3 Screenshot photo of top 5 BLAST matches' %}
+                                    <ul class="list-group">
+                                        {% for fn in barcoding_filename_list_dict.rerun3_screenshot_top_5_BLAST_matches %}
                                             <li class="list-group-item" style="border: none"><a href="{{ base_url }}{{ fn }}">{{ fn }}</a></li>
                                         {% endfor %}
                                     </ul>
