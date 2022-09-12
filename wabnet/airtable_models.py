@@ -209,7 +209,7 @@ class Screening(models.Model):
     rerun2_percent_identity_top_BLAST_match = models.FloatField(verbose_name='RE-RUN 2 Percent identity (%) for top BLAST match', null=True)
     rerun2_screenshot_top_5_BLAST_matches = models.TextField(verbose_name='RE-RUN 2 Screenshot photo of top 5 BLAST matches', null=True)
 
-    rerun3_sample = models.TextField(verbose_name='Was sample RE-RUN for a 3rd time?', null=True)
+    rerun3_sample = models.TextField(verbose_name='Was sample RE-RUN a 3rd time?', null=True)
     rerun3_sample_id = models.TextField(verbose_name='RE-RUN 3 SAMPLE ID', null=True)
     rerun3_sample_type = models.TextField(verbose_name='RE-RUN 3 Sample type', null=True)
     rerun3_sample_storage_media = models.TextField(verbose_name='RE-RUN 3 Sample storage media', null=True)
