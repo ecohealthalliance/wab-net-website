@@ -215,7 +215,7 @@ class Screening(models.Model):
     rerun3_sample_storage_media = models.TextField(verbose_name='RE-RUN 3 Sample storage media', null=True)
     rerun3_date_RNA_extraction = models.DateTimeField(verbose_name='RE-RUN 3 Date of RNA extraction', null=True)
     rerun3_RNA_extraction_method = models.TextField(verbose_name='RE-RUN 3 RNA extraction method', null=True)
-    rerun3_date_rtpcr_1 = models.DateTimeField(verbose_name='RE-RUN 3  Date of RT-PCR', null=True)
+    rerun3_date_rtpcr_1 = models.DateTimeField(verbose_name='RE-RUN 3 Date of RT-PCR', null=True)
     rerun3_date_gel_electrophoresis = models.DateTimeField(verbose_name='RE-RUN 3 Date of gel electrophoresis', null=True)
     rerun3_positive_control = models.TextField(verbose_name='RE-RUN 3 Positive control', null=True)
     rerun3_negative_control = models.TextField(verbose_name='RE-RUN 3 Negative control', null=True)
