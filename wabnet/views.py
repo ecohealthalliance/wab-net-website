@@ -543,7 +543,6 @@ def bat_view(request, bat_id):
                                     'rerun3_screenshot_top_5_BLAST_matches',
                                     'rerun3_aligned_cov_sequence_submitted_to_blast',
                                     'rerun3_gel_photo_labeled']
-]
     if airtable_models.Screening.objects.filter(animal_id=curr_animal_id).count() > 0:
         curr_obj = airtable_models.Screening.objects.get(animal_id='{}'.format(curr_animal_id))
         screening_data = model_to_dict(airtable_models.Screening.objects.get(animal_id=curr_animal_id))
