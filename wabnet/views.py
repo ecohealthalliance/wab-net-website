@@ -457,7 +457,6 @@ def make_verbose_dict(curr_model):
 
 @login_required
 def bat_view(request, bat_id):
-    logger.info('*** start bat_view ***')
     base_url = '/media/airtable/'
     raise_if_user_cannot_access_bat(request.user, bat_id)
     tables = []
@@ -537,7 +536,14 @@ def bat_view(request, bat_id):
                                     'rerun2_raw_cov_sequence_pdf',
                                     'rerun2_screenshot_top_5_BLAST_matches',
                                     'rerun2_aligned_cov_sequence_submitted_to_blast',
-                                    'rerun2_gel_photo_labeled']
+                                    'rerun2_gel_photo_labeled',
+                                    'rerun3_raw_cov_sequence_ab1',
+                                    'rerun3_raw_cov_sequence_txt',
+                                    'rerun3_raw_cov_sequence_pdf',
+                                    'rerun3_screenshot_top_5_BLAST_matches',
+                                    'rerun3_aligned_cov_sequence_submitted_to_blast',
+                                    'rerun3_gel_photo_labeled']
+]
     if airtable_models.Screening.objects.filter(animal_id=curr_animal_id).count() > 0:
         curr_obj = airtable_models.Screening.objects.get(animal_id='{}'.format(curr_animal_id))
         screening_data = model_to_dict(airtable_models.Screening.objects.get(animal_id=curr_animal_id))
@@ -630,7 +636,12 @@ def bat_view(request, bat_id):
                               'RE-RUN 2 Raw CoV sequence - .ab1 files',
                               'RE-RUN 2 Raw CoV sequence - .pdf files',
                               'RE-RUN 2 Aligned CoV sequence (.fasta file) submitted to BLAST',
-                              'RE-RUN 2 Screenshot photo of top 5 BLAST matches']
+                              'RE-RUN 2 Screenshot photo of top 5 BLAST matches',
+                              'RE-RUN 3 Gel photo - labeled', 'RE-RUN Raw CoV sequence - .txt files',
+                              'RE-RUN 3 Raw CoV sequence - .ab1 files',
+                              'RE-RUN 3 Raw CoV sequence - .pdf files',
+                              'RE-RUN 3 Aligned CoV sequence (.fasta file) submitted to BLAST',
+                              'RE-RUN 3 Screenshot photo of top 5 BLAST matches']
     special_barcoding_keys = ['Gel photo - labeled', 'Raw host sequence - .txt files',
                               'Raw host sequence - .ab1 files',
                               'Raw host sequence - .pdf files',
