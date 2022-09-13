@@ -104,6 +104,9 @@ class Barcoding(models.Model):
     rerun3_screenshot_top_5_BLAST_matches = models.TextField(verbose_name='RE-RUN 3 Screenshot photo of top 5 BLAST matches', null=True)
 
     primer_set = models.TextField(verbose_name='Primer set used', null=True)
+    rerun_primer_set = models.TextField(verbose_name='RE-RUN Primer set used', null=True)
+    rerun2_primer_set = models.TextField(verbose_name='RE-RUN 2 Primer set used', null=True)
+    rerun3_primer_set = models.TextField(verbose_name='RE-RUN 3 Primer set used', null=True)
 
     cov_screening_data = models.TextField(verbose_name='CoV Screening Data', null=False)
 
