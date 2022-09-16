@@ -29,10 +29,16 @@ These steps should be tested in a development Git branch on a staging EC2 instan
 1. `git checkout *your_dev_branch*`
 1. `/venv/bin/python3 manage.py makemigrations wabnet`
 1. `/venv/bin/python3 manage.py migrate`
+1. if new columns contain files:
+  1. add verbose and short variable names for those columns to lists in views.py
+  1. add conditions for those variables to `templates/bat.html`
 1. test by changing cron sync command time to a few minutes from current time
 1. `git commit -m 'added new AT cols to data model' -a`
 1. `git push`
 1. make pull request for hotfix branch and merge with master branch
+
+If you get a 500 error or a message that the site is down for maintenance and there's no sync running there's a problem with something you added.
+You can check the logs by either going to /wabnet-compose and running `docker-compose logs` or by running `docker logs wabnet` and `docker logs wabnet-apache` from anywhere.
 
 ## reverting to an earlier migration
 1. docker exec -it *wabnet_container_id* /bin/bash
